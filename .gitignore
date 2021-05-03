@@ -748,3 +748,9 @@ build/CMakeFiles/gt-annotate.dir/src/mainwindow.cc.o
 build/CMakeFiles/gt-annotate_lib.dir/src/mainwindow.cc.o
 build/gt-annotate_autogen/6YEA5652QU/moc_mainwindow.cpp
 build/gt-annotate_lib_autogen/6YEA5652QU/moc_mainwindow.cpp
+build/test.json
+build/CMakeFiles/gt-annotate.dir/src/view.cc.o
+build/CMakeFiles/gt-annotate_lib.dir/src/view.cc.o
+build/Debug/test.json
+build/gt-annotate_autogen/6YEA5652QU/moc_view.cpp
+build/gt-annotate_lib_autogen/6YEA5652QU/moc_view.cpp
