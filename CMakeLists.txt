@@ -1,0 +1,139 @@
+cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
+project(gt-annotate
+  VERSION 3.0
+  DESCRIPTION "gt-annotate v3.0 Windows/Linux"
+  LANGUAGES C CXX)
+
+set(DEFAULT_BUILD_TYPE "Release")
+set(CMAKE_BUILD_TYPE "Debug")
+
+#STNDARD STUFF
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS_COMMON}")
+set(TARGET_NAME "gt-annotate")
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+configure_file(config.json ${CMAKE_BINARY_DIR}/config.json)
+configure_file(config.json ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/config.json)
+
+if (WIN32)
+	set(QT5_PATH  "E:\\Qt\\5.15.2\\msvc2019_64")
+	list(APPEND CMAKE_PREFIX_PATH ${QT5_PATH})
+	list(APPEND CMAKE_PREFIX_PATH "E:\\repo\\opencvBuild")
+	list(APPEND CMAKE_PREFIX_PATH "E:\\repo\\spdlog\\build\\install")
+	list(APPEND CMAKE_PREFIX_PATH "E:\\repo\\IncludeSpdlog\\build\\install")
+	list(APPEND CMAKE_PREFIX_PATH "E:\\repo\\ConfigReader\\build\\install")
+	list(APPEND CMAKE_PREFIX_PATH "E:\\repo\\Broadcaster\\build\\install")
+endif (WIN32)
+
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+find_package(Qt5Core REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(Qt5Test REQUIRED)
+find_package(Qt5Widgets REQUIRED)
+find_package(Qt5Network REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+
+
+enable_testing()
+
+macro(clone_build libname)
+	configure_file(clone_build/${libname}.in ${libname}-download/CMakeLists.txt)
+	execute_process(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/${libname}-download")
+	execute_process(COMMAND "${CMAKE_COMMAND}" --build .
+	WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/${libname}-download")
+	add_subdirectory("${CMAKE_BINARY_DIR}/${libname}-src"
+                 "${CMAKE_BINARY_DIR}/${libname}-build")
+endmacro()
+
+clone_build(googletest)
+# Prevent GoogleTest from overriding our compiler/linker options
+# when building with Visual Studio
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+clone_build(spdlog)
+
+file(GLOB_RECURSE SRC src/*.cc src/*.c src/*.cpp)
+file(GLOB_RECURSE HEADERS include/*.h include/*.hpp)
+
+add_executable(${PROJECT_NAME}
+    ${SRC}
+    ${HEADERS})
+
+add_library(${PROJECT_NAME}_lib STATIC
+${SRC} ${HEADERS} )
+
+add_executable(g_test gtest/gtest.cc)
+
+target_link_libraries(${PROJECT_NAME}_lib ${QT_LIBRARIES} ${OpenCV_LIBS} Threads::Threads spdlog)
+target_link_libraries(${PROJECT_NAME}_lib Qt5::Core Qt5::Network Qt5::Widgets)
+
+target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_lib ${QT_LIBRARIES} ${OpenCV_LIBS} Threads::Threads spdlog)
+target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_lib Qt5::Core Qt5::Network Qt5::Widgets)
+
+target_link_libraries(g_test ${PROJECT_NAME}_lib gtest gmock spdlog)
+target_link_libraries(g_test ${PROJECT_NAME}_lib Qt5::Core Threads::Threads)
+
+
+message("CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE} ")
+
+if (CMAKE_BUILD_TYPE STREQUAL "Debug" AND WIN32)
+	set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+	set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+endif()
+
+if (CMAKE_BUILD_TYPE STREQUAL "Release" AND WIN32)
+	set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+	set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+endif()
+
+
+if (WIN32)
+    get_target_property(QT5_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+    get_filename_component(QT5_WINDEPLOYQT_EXECUTABLE ${QT5_QMAKE_EXECUTABLE} PATH)
+    set(QT5_WINDEPLOYQT_EXECUTABLE "${QT5_WINDEPLOYQT_EXECUTABLE}/windeployqt.exe")
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+       COMMAND ${QT5_WINDEPLOYQT_EXECUTABLE} --qmldir ${CMAKE_SOURCE_DIR} $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+
+endif(WIN32)
+
+if (WIN32)
+	message("CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE} ")
+
+	message("Copy OpenCV file:" )
+	if(${CMAKE_BUILD_TYPE} STREQUAL  "Release")
+		set(OPENCV_PREFIX_BUILD_TYPE "")
+	endif()
+	if(${CMAKE_BUILD_TYPE} STREQUAL  "Debug")
+		set(OPENCV_PREFIX_BUILD_TYPE "d")
+	endif()
+
+	add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different  ${QT5_PATH}/bin/Qt5Test${OPENCV_PREFIX_BUILD_TYPE}.dll   ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different  ${QT5_PATH}/bin/Qt5Gui${OPENCV_PREFIX_BUILD_TYPE}.dll   ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different  ${QT5_PATH}/bin/Qt5Widgets${OPENCV_PREFIX_BUILD_TYPE}.dll   ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different  ${OpenCV_DIR}/bin/${CMAKE_BUILD_TYPE}/opencv_stitching450${OPENCV_PREFIX_BUILD_TYPE}.dll   ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different  ${OpenCV_DIR}/bin/${CMAKE_BUILD_TYPE}/opencv_bgsegm450${OPENCV_PREFIX_BUILD_TYPE}.dll   ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different  ${OpenCV_DIR}/bin/${CMAKE_BUILD_TYPE}/opencv_tracking450${OPENCV_PREFIX_BUILD_TYPE}.dll   ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different  ${OpenCV_DIR}/bin/${CMAKE_BUILD_TYPE}/opencv_videoio450${OPENCV_PREFIX_BUILD_TYPE}.dll   ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different  ${OpenCV_DIR}/bin/${CMAKE_BUILD_TYPE}/opencv_video450${OPENCV_PREFIX_BUILD_TYPE}.dll   ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different  ${OpenCV_DIR}/bin/${CMAKE_BUILD_TYPE}/opencv_imgcodecs450${OPENCV_PREFIX_BUILD_TYPE}.dll   ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different  ${OpenCV_DIR}/bin/${CMAKE_BUILD_TYPE}/opencv_imgproc450${OPENCV_PREFIX_BUILD_TYPE}.dll   ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different  ${OpenCV_DIR}/bin/${CMAKE_BUILD_TYPE}/opencv_core450${OPENCV_PREFIX_BUILD_TYPE}.dll   ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different  ${OpenCV_DIR}/bin/${CMAKE_BUILD_TYPE}/opencv_calib3d450${OPENCV_PREFIX_BUILD_TYPE}.dll   ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different  ${OpenCV_DIR}/bin/${CMAKE_BUILD_TYPE}/opencv_features2d450${OPENCV_PREFIX_BUILD_TYPE}.dll   ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different  ${OpenCV_DIR}/bin/${CMAKE_BUILD_TYPE}/opencv_flann450${OPENCV_PREFIX_BUILD_TYPE}.dll   ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different  ${OpenCV_DIR}/bin/${CMAKE_BUILD_TYPE}/opencv_dnn450${OPENCV_PREFIX_BUILD_TYPE}.dll   ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different  ${OpenCV_DIR}/bin/${CMAKE_BUILD_TYPE}/opencv_highgui450${OPENCV_PREFIX_BUILD_TYPE}.dll   ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different  ${OpenCV_DIR}/bin/${CMAKE_BUILD_TYPE}/opencv_highgui450${OPENCV_PREFIX_BUILD_TYPE}.dll   ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different  ${OpenCV_DIR}/bin/${CMAKE_BUILD_TYPE}/opencv_gapi450${OPENCV_PREFIX_BUILD_TYPE}.dll   ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/
+	)
+endif(WIN32)
