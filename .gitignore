@@ -744,3 +744,7 @@ build/spdlog-download/spdlog-prefix/src/spdlog-stamp/spdlog-install
 build/spdlog-download/spdlog-prefix/src/spdlog-stamp/spdlog-mkdir
 build/spdlog-download/spdlog-prefix/src/spdlog-stamp/spdlog-patch
 build/spdlog-download/spdlog-prefix/src/spdlog-stamp/spdlog-test
+build/CMakeFiles/gt-annotate.dir/src/mainwindow.cc.o
+build/CMakeFiles/gt-annotate_lib.dir/src/mainwindow.cc.o
+build/gt-annotate_autogen/6YEA5652QU/moc_mainwindow.cpp
+build/gt-annotate_lib_autogen/6YEA5652QU/moc_mainwindow.cpp
