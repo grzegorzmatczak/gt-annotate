@@ -25,12 +25,16 @@ configure_file(config.json ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/config.json)
 if (WIN32)
 	set(QT5_PATH  "E:\\Qt\\5.15.2\\msvc2019_64")
 	list(APPEND CMAKE_PREFIX_PATH ${QT5_PATH})
+	
 	list(APPEND CMAKE_PREFIX_PATH "E:\\repo\\opencvBuild")
 	list(APPEND CMAKE_PREFIX_PATH "E:\\repo\\spdlog\\build\\install")
 	list(APPEND CMAKE_PREFIX_PATH "E:\\repo\\IncludeSpdlog\\build\\install")
 	list(APPEND CMAKE_PREFIX_PATH "E:\\repo\\ConfigReader\\build\\install")
 	list(APPEND CMAKE_PREFIX_PATH "E:\\repo\\Broadcaster\\build\\install")
 endif (WIN32)
+
+list(APPEND CMAKE_PREFIX_PATH "include")
+list(APPEND CMAKE_PREFIX_PATH "src")
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
