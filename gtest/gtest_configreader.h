@@ -5,7 +5,7 @@
 
 #include "../include/configreader.h"
 
-constexpr auto CONFIG{ "config.json" };
+constexpr auto CONFIG{ "test.json" };
 
 using ::testing::AtLeast;
 
@@ -20,7 +20,7 @@ namespace gtest_configreader {
 
 		TEST_F(GTest_configreader, test_readConfig)
 		{
-			QJsonObject _objReference{{"General",QJsonObject{{"LogLevel",0}}}};
+			QJsonObject _objReference{{"General",QJsonObject{{"LogLevel",1}}}};
 
 			ConfigReader * _configreader = new ConfigReader();
 			QJsonObject obj{};

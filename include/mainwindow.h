@@ -4,6 +4,7 @@
 #include <QtWidgets>
 
 #include "includespdlog.h"
+#include "view.h"
 
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
@@ -21,6 +22,9 @@ public:
 	void configure(QJsonObject const& a_config);
 
 private:
+    void setupMainWidget();
+    void createMenus();
+    void setupView(QJsonObject const& a_config);
 
 private slots:
 
@@ -29,6 +33,12 @@ signals:
 public slots:
 
 private:
+    QProgressBar* m_progressBar;
+    QMenu* fileMenu;
+    QMenuBar* menuBar;
+
+private:
+	View* view;
 
 };
 
