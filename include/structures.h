@@ -3,10 +3,10 @@
 
 enum uiMode
 {
-  None = 0,
-  SelectROI = 1,
-  Paint = 2,
-  MoveSelect = 3
+	None = 0,
+	SelectROI = 1,
+	Paint = 2,
+	MoveSelect = 3
 };
 
 #endif // STRUCTURES_H

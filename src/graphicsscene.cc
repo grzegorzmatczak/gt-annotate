@@ -137,7 +137,7 @@ void GraphicsScene::keyPressEvent(QKeyEvent* event)
 	{
 		if (selectedItems().count() > 0)
 		{
-            /*
+			/*
 			QGraphicsItem* itemToRemove = selectedItems()[0];
 			if (itemToRemove->type() == 2)
 			{

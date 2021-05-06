@@ -9,33 +9,35 @@
 
 class GraphicsView : public QGraphicsView
 {
-  Q_OBJECT
- public:
-  GraphicsView();
+	Q_OBJECT
 
- public:
-  bool drawing();
-  bool editing();
+	public:
+		GraphicsView();
 
- protected:
-  void wheelEvent(QWheelEvent *) override;
-  void mousePressEvent(QMouseEvent *e) override;
+	public:
+		bool drawing();
+		bool editing();
 
- signals:
-  void updateView();
-  void zoomIn(qint32 delta);
-  void zoomOut(qint32 delta);
+	protected:
+		void wheelEvent(QWheelEvent *) override;
+		void mousePressEvent(QMouseEvent *e) override;
 
- private:
-  qint32 m_mode;
+	signals:
+		void updateView();
+		void zoomIn(qint32 delta);
+		void zoomOut(qint32 delta);
 
- private:
-  QPointF m_initPos;
-  QPointF m_actualPos;
+	private:
+		qint32 m_mode;
 
-  // QWidget interface
- protected:
-  void mouseMoveEvent(QMouseEvent *event) override;
+	private:
+		QPointF m_initPos;
+		QPointF m_actualPos;
+
+	// QWidget interface
+	protected:
+		void mouseMoveEvent(QMouseEvent *event) override;
+
 };
 
 #endif // GRAPHICSVIEW_H

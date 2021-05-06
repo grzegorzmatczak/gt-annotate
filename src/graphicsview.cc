@@ -17,9 +17,9 @@ GraphicsView::GraphicsView()
 
 void GraphicsView::wheelEvent(QWheelEvent* e)
 {
-#if(DEBUG)
+	#if(DEBUG)
 	H_Logger->trace("GraphicsView::wheelEvent()");
-#endif
+	#endif
 	if (e->modifiers() & Qt::ControlModifier)
 	{
 		if (e->delta() > 0)

@@ -27,13 +27,13 @@ void MainWindow::configure(QJsonObject const& a_config)
 	QJsonObject jColors = a_config[COLORS].toObject();
 	QJsonObject jDataset = a_config[DATASET].toObject();
 
-    createMenus();
-    setupMainWidget();
+	createMenus();
+	setupMainWidget();
 }
 
 void MainWindow::setupMainWidget() 
 {
-    Logger->trace("MainWindow::MainWindow() mainCentralLayout:");
+	Logger->trace("MainWindow::MainWindow() mainCentralLayout:");
 	QGridLayout* mainCentralLayout = new QGridLayout;
 	mainCentralLayout->setContentsMargins(0, 0, 0, 0);
 	//mainCentralLayout->addWidget(leftToolBar, 0, 0);
@@ -43,7 +43,7 @@ void MainWindow::setupMainWidget()
 	mainCentralWidget->setLayout(mainCentralLayout);
 
 	m_progressBar = new QProgressBar(this);
-    m_progressBar->setMinimum(0);
+	m_progressBar->setMinimum(0);
 	m_progressBar->setMaximum(100);
 
 	Logger->trace("MainWindow::MainWindow() mainLayout:");
@@ -70,7 +70,7 @@ void MainWindow::createMenus()
 void MainWindow::setupView(QJsonObject const& a_config)
 {
 	view = new View(a_config);
-    /*
+	/*
 	connect(this, &MainWindow::addImageToScene, view, &View::onAddImageToScene);
 	connect(this, &MainWindow::setRectOpacity, view, &View::onSetRectOpacity);
 	connect(this, &MainWindow::renderColors, view, &View::renderColorsFromJson);

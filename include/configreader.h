@@ -10,9 +10,9 @@
 
 class ConfigReader : public QObject
 {
-public:
-	ConfigReader();
-	~ConfigReader();
-	bool readConfig(QString configPathWithName, QJsonObject& obj);
+	public:
+		ConfigReader();
+		~ConfigReader();
+		bool readConfig(QString configPathWithName, QJsonObject& obj);
 };
 #endif //CONFIG_READER_H

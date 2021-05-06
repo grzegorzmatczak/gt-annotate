@@ -16,29 +16,29 @@ class MainWindow : public QWidget
 {
 	Q_OBJECT
 
-public:
-    MainWindow();
-	MainWindow(QJsonObject const& a_config);
-	void configure(QJsonObject const& a_config);
+	public:
+		MainWindow();
+		MainWindow(QJsonObject const& a_config);
+		void configure(QJsonObject const& a_config);
 
-private:
-    void setupMainWidget();
-    void createMenus();
-    void setupView(QJsonObject const& a_config);
+	private:
+		void setupMainWidget();
+		void createMenus();
+		void setupView(QJsonObject const& a_config);
 
-private slots:
+	private slots:
 
-signals:
+	signals:
 
-public slots:
+	public slots:
 
-private:
-    QProgressBar* m_progressBar;
-    QMenu* fileMenu;
-    QMenuBar* menuBar;
+	private:
+		QProgressBar* m_progressBar;
+		QMenu* fileMenu;
+		QMenuBar* menuBar;
 
-private:
-	View* view;
+	private:
+		View* view;
 
 };
 
