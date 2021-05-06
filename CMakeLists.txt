@@ -24,6 +24,8 @@ configure_file(gtest/test.json ${CMAKE_BINARY_DIR}/test.json)
 configure_file(config.json ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/config.json)
 configure_file(gtest/test.json ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/test.json)
 
+include_directories( "include" )
+
 if (WIN32)
 	set(QT5_PATH  "E:\\Qt\\5.15.2\\msvc2019_64")
 	list(APPEND CMAKE_PREFIX_PATH ${QT5_PATH})
@@ -46,6 +48,7 @@ find_package(Qt5Test REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Network REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
+find_package(Qt5OpenGL)
 
 
 enable_testing()
@@ -80,13 +83,13 @@ ${SRC} ${HEADERS} )
 add_executable(g_test gtest/gtest.cc)
 
 target_link_libraries(${PROJECT_NAME}_lib ${QT_LIBRARIES} ${OpenCV_LIBS} Threads::Threads spdlog)
-target_link_libraries(${PROJECT_NAME}_lib Qt5::Core Qt5::Network Qt5::Widgets)
+target_link_libraries(${PROJECT_NAME}_lib Qt5::Core Qt5::Network Qt5::Widgets Qt5::OpenGL)
 
 target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_lib ${QT_LIBRARIES} ${OpenCV_LIBS} Threads::Threads spdlog)
-target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_lib Qt5::Core Qt5::Network Qt5::Widgets)
+target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_lib Qt5::Core Qt5::Network Qt5::Widgets Qt5::OpenGL)
 
 target_link_libraries(g_test ${PROJECT_NAME}_lib gtest gmock spdlog)
-target_link_libraries(g_test ${PROJECT_NAME}_lib Qt5::Core Threads::Threads)
+target_link_libraries(g_test ${PROJECT_NAME}_lib Qt5::Core Threads::Threads Qt5::OpenGL)
 
 
 message("CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE} ")
