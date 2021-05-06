@@ -3,6 +3,8 @@
 
 #include <QtWidgets>
 #include "includespdlog.h"
+#include "graphicsscene.h"
+#include "graphicsview.h"
 
 
 class View : public QFrame
@@ -19,6 +21,31 @@ class View : public QFrame
  signals:
 
  private slots:
+ void setupMatrix();
+ void setOpacity();
+
+private:
+  GraphicsView *m_graphicsView;
+  GraphicsScene *m_graphicsScene;
+
+  QVBoxLayout *m_zoomSliderLayout;
+  QVBoxLayout *m_opacityLayout;
+  QGridLayout *m_topLayout;
+  QSlider *m_opacitySlider;
+  QSlider *m_zoomSlider;
+
+
+private:
+  qreal m_scaleOpacity;
+  qreal m_scale;
+
+private:
+
+private:
+  QImage m_diff;
+  QImage m_image;
+  QGraphicsPixmapItem *m_whitePixmap;
+  QGraphicsPixmapItem *m_pixmap;
 
 };
  
