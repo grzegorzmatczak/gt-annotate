@@ -18,8 +18,15 @@ class View : public QFrame
 		void configure(QJsonObject const &a_config);
 
 	public slots:
+		void onPaintWhiteBoard(qint32 x, qint32 y);
+		void onZoomIn(qint32 delta);
+  		void onZoomOut(qint32 delta);
 
 	signals:
+		void setModePaint();
+		void setModeROI();
+		void setModeMove();
+		void resetScene();
 
 	private slots:
 		void setupMatrix();
@@ -41,6 +48,20 @@ class View : public QFrame
 		qreal m_scale;
 
 	private:
+		std::vector<struct colors> m_colors;
+		qint32 m_penSize{};
+		QColor m_color;
+	 private:
+		QColor m_colorBlack;
+		QColor m_colorWhite;
+		QColor m_colorShadow;
+		QColor m_colorOutOfScope;
+		QColor m_colorUnknown;
+		qint32 m_intBlack{};
+		qint32 m_intWhite{};
+		qint32 m_intShadow{};
+		qint32 m_intOutOfScope{};
+		qint32 m_intUnknown{};
 
 	private:
 		QImage m_diff;
