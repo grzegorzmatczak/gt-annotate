@@ -9,4 +9,11 @@ enum uiMode
 	MoveSelect = 3
 };
 
+struct colors
+{
+  QString name;
+  QColor color;
+  qint32 gray;
+};
+
 #endif // STRUCTURES_H
