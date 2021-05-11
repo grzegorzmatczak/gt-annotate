@@ -82,7 +82,7 @@ View::View(QJsonObject const& a_config, QFrame* parent)
 	connect(m_graphicsScene, &GraphicsScene::paintWhiteBoard, this, &View::onPaintWhiteBoard);
 	connect(m_graphicsView, &GraphicsView::zoomIn, this, &View::onZoomIn);
 	connect(m_graphicsView, &GraphicsView::zoomOut, this, &View::onZoomOut);
-
+	setupMatrix();
 }
 
 void View::configure(QJsonObject const& a_config)
@@ -181,4 +181,3 @@ void View::onZoomOut(qint32 delta)
 {
 	m_zoomSlider->setValue(m_zoomSlider->value() - delta);
 }
-

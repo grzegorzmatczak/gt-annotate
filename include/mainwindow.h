@@ -25,20 +25,33 @@ class MainWindow : public QWidget
 		void setupMainWidget();
 		void createMenus();
 		void setupView(QJsonObject const& a_config);
+		void setupButtons();
+		void setupLayout() ;
 
 	private slots:
 
 	signals:
+	
 
 	public slots:
 
 	private:
 		QProgressBar* m_progressBar;
-		QMenu* fileMenu;
-		QMenuBar* menuBar;
+		QMenu* m_fileMenu;
+		QMenuBar* m_menuBar;
+		QHBoxLayout* m_buttonLayout;
+		QToolButton* m_loadButton;
+		QToolButton* m_saveGTbutton;
+		QWidget* m_buttonContainer;
+		QTreeView* m_labelList;
+		QVBoxLayout* m_rightLayout;
+		QWidget* m_rightLayoutContainer;
+		QGridLayout* m_gridLayout;
+		QWidget* m_rightWidget;
 
 	private:
-		View* view;
+		View* m_view;
+	
 
 };
 
