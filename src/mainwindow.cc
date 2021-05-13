@@ -36,18 +36,9 @@ void MainWindow::configure(QJsonObject const& a_config)
 void MainWindow::setupMainWidget() 
 {
 	Logger->trace("MainWindow::MainWindow() mainCentralLayout:");
-	QGridLayout* mainCentralLayout = new QGridLayout;
-	mainCentralLayout->setContentsMargins(0, 0, 0, 0);
-	//mainCentralLayout->addWidget(leftToolBar, 0, 0);
-	mainCentralLayout->addWidget(m_rightWidget, 0, 1);
 
-	QWidget* mainCentralWidget = new QWidget(this);
-	mainCentralWidget->setLayout(mainCentralLayout);
 
-	m_progressBar = new QProgressBar(this);
-	m_progressBar->setMinimum(0);
-	m_progressBar->setMaximum(100);
-
+	
 	Logger->trace("MainWindow::MainWindow() mainLayout:");
 	QGridLayout* mainLayout = new QGridLayout;
 	m_view->setMinimumWidth(1000);
@@ -55,8 +46,6 @@ void MainWindow::setupMainWidget()
 	mainLayout->setContentsMargins(0, 0, 0, 0);
 	//mainLayout->addWidget(menuBar, 0, 0);
 	mainLayout->addWidget(m_view, 0, 0);
-	mainLayout->addWidget(mainCentralWidget, 1, 0);
-	mainLayout->addWidget(m_progressBar, 2, 0);
 	
 	setLayout(mainLayout);
 
@@ -67,34 +56,14 @@ void MainWindow::createMenus()
 {
 	m_menuBar = new QMenuBar(this);
 	m_fileMenu = m_menuBar->addMenu(tr("&File"));
-	//m_fileMenu->addAction(action_open);
 	m_fileMenu->addSeparator();
-	//m_fileMenu->addAction(action_autoSaving);
 }
 
 void MainWindow::setupView(QJsonObject const& a_config)
 {
 	m_view = new View(a_config);
 	m_view->setMinimumWidth(1000);
-/*
-
-	connect(this, &MainWindow::addImageToScene, view, &View::onAddImageToScene);
-	connect(this, &MainWindow::setRectOpacity, view, &View::onSetRectOpacity);
-	connect(this, &MainWindow::renderColors, view, &View::renderColorsFromJson);
-	connect(this, &MainWindow::addRectToScene, view, &View::onAddRectToScene);
-	connect(this, &MainWindow::setColor, view, &View::setColor);
-	connect(this, &MainWindow::updateFilename, view, &View::onUpdateFilename);
-	connect(this, &MainWindow::addList, this, &MainWindow::onAddList);
-	connect(this, &MainWindow::clearItems, view, &View::onClearItems);
-
-	connect(view, &View::updateLabelList, this, &MainWindow::onUpdateLabelList);
-	connect(view, &View::updateFile, this, &MainWindow::onUpdateFile);
-	connect(view, &View::deleteList, this, &MainWindow::onDeleteList);
-	connect(view, &View::addList, this, &MainWindow::onAddList);
-	*/
 }
-
-
 
 void MainWindow::setupLayout() 
 {
@@ -121,7 +90,3 @@ void MainWindow::setupLayout()
 	m_rightWidget = new QWidget(this);
 	m_rightWidget->setLayout(m_gridLayout);
 }
-
-
-
-	

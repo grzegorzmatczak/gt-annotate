@@ -43,19 +43,20 @@ class View : public QFrame
 		void addImageToScene(QPixmap image);
 		void onResetScene();
 		void resetView();
-
+		void setupProgressBar();
 		void setupGraphicsView();
 		void setupSliders();
 		void setupLeftToolBar(QJsonObject const& a_config);
-		void setupCentralWidget();
+		void setupCentralWidget(QJsonObject const& a_config);
 		void loadImage(QString imageName);
 		
 
 	private:
 		GraphicsView *m_graphicsView;
 		GraphicsScene *m_graphicsScene;
-
-		QGridLayout *m_topLayout;
+		QProgressBar* m_progressBar;
+		QGridLayout *m_vLayout;
+		QGridLayout *m_hLayout;
 		QSlider *m_opacitySlider;
 		QSlider *m_zoomSlider;
 		ToolBar* m_leftToolBar;

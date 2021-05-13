@@ -9,12 +9,12 @@
 
 class PenSizePicker : public QWidget
 {
-  Q_OBJECT
- public:
-  explicit PenSizePicker(QWidget *parent = nullptr);
+	Q_OBJECT
+	public:
+		explicit PenSizePicker(QWidget *parent = nullptr);
 
- signals:
-  void changePenSize(qint32 size);
+	signals:
+		void changePenSize(qint32 size);
 };
 
 #endif // PENSIZEPICKER_H

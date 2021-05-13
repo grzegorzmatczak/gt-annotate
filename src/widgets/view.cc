@@ -23,32 +23,41 @@ View::View(QJsonObject const& a_config, QFrame* parent)
 	, m_penSize(3)
 {
     Logger->trace("View::View()");
+	
 	View::configure(a_config);
-	
-	
-	View::setupLeftToolBar(a_config);
-	View::setupCentralWidget();
-
-	
+	View::setupCentralWidget(a_config);
 
 	Logger->trace("View::View() setupMatrix");
 	setupMatrix();
 }
 
-void View::setupCentralWidget()
+void View::setupCentralWidget(QJsonObject const& a_config)
 {
 	View::setupGraphicsView();
+	View::setupLeftToolBar(a_config);
 	View::setupSliders();
+	View::setupProgressBar();
 
 	Logger->trace("View::setupCentralWidget()");
-	m_topLayout = new QGridLayout;
-	m_topLayout->addWidget(m_leftToolBar, 0, 0);
-	m_topLayout->addWidget(m_zoomSlider, 0, 1);
-	m_topLayout->addWidget(m_graphicsView, 0, 2);
-	m_topLayout->addWidget(m_opacitySlider, 0, 3);
+	m_vLayout = new QGridLayout;
+	m_vLayout->addWidget(m_leftToolBar, 0, 0);
+	m_vLayout->addWidget(m_zoomSlider, 0, 1);
+	m_vLayout->addWidget(m_graphicsView, 0, 2);
+	m_vLayout->addWidget(m_opacitySlider, 0, 3);
+	//m_topLayout->addWidget(m_progressBar, 0, 4);
 
+	m_hLayout = new QGridLayout;
+	m_hLayout->addLayout(m_vLayout, 0, 0);
+	m_hLayout->addWidget(m_progressBar, 1, 0);
 	Logger->trace("View::View() setLayout");
-	setLayout(m_topLayout);
+	setLayout(m_hLayout);
+}
+
+void View::setupProgressBar()
+{
+	m_progressBar = new QProgressBar(this);
+	m_progressBar->setMinimum(0);
+	m_progressBar->setMaximum(100);
 }
 
 void View::setupSliders()
@@ -96,24 +105,22 @@ void View::setupLeftToolBar(QJsonObject const& a_config) {
 	m_leftToolBar = new ToolBar();
 	m_leftToolBar->setWindowFlag(Qt::FramelessWindowHint);
 	m_leftToolBar->setOrientation(Qt::Vertical);
-
+	m_leftToolBar->addSeparator();
 	m_colorPicker = new ColorPicker(a_config);
 	m_leftToolBar->addWidget(m_colorPicker);
-	//connect(m_colorPicker, &ColorPicker::changeColor, view, &View::onChangeColor);
+	connect(m_colorPicker, &ColorPicker::changeColor, this, &View::onChangeColor);
 	m_penSizePicker = new PenSizePicker();
 	m_leftToolBar->addWidget(m_penSizePicker);
-	//connect(m_penSizePicker, &PenSizePicker::changePenSize, view,		&View::onChangePenSize);
+	connect(m_penSizePicker, &PenSizePicker::changePenSize, this, &View::onChangePenSize);
 
-	m_leftToolBar->addSeparator();
-	//m_leftToolBar->addAction(action_antialiasing);
 	m_leftToolBar->addSeparator();
 
 	m_loadButton = new QToolButton;
 	m_loadButton->setText(tr("Load Directory"));
 	m_loadButton->setChecked(false);
-	m_loadButton->setToolTip("Ładowanie folderu");
+	m_loadButton->setToolTip("Load Directory");
 	m_leftToolBar->addWidget(m_loadButton);
-
+	m_leftToolBar->addSeparator();
 	m_saveGTbutton = new QToolButton;
 	m_saveGTbutton->setText(tr("Save gt"));
 	m_saveGTbutton->setChecked(false);
@@ -133,12 +140,12 @@ void View::onLoadDirectory()
 	View::loadImage("/home/gm/Obrazy/temp.png");
 }
 
-
 void View::onChangeColor(QColor color)
 {
 	qDebug() << "View::onChangeColor:" << color;
 	m_color = color;
 }
+
 void View::onChangePenSize(qint32 size)
 {
 	qDebug() << "View::onChangePenSize:" << size;
@@ -199,8 +206,6 @@ void View::setupMatrix()
 	Logger->trace("m_scale:{}", m_scale);
 	QMatrix matrix;
 	matrix.scale(m_scale, m_scale);
-
-	Logger->trace("View::setupMatrix() setMatrix");
 	m_graphicsView->setMatrix(matrix);
 }
 
@@ -241,9 +246,9 @@ void View::onZoomOut(qint32 delta)
 	m_zoomSlider->setValue(m_zoomSlider->value() - delta);
 }
 
-void View::onLoadImage(QString imageName)
+void View::loadImage(QString imageName)
 {
-	Logger->debug("View::onLoadImage()");
+	Logger->debug("View::loadImage()");
 	QPixmap test;
 	test.load(imageName);
 	addImageToScene(test);
@@ -268,17 +273,16 @@ void View::addImageToScene(QPixmap image)
 	QPixmap whiteBoardPixmap = QPixmap::fromImage(m_diff);
 	//m_whitePixmap = static_cast<GraphicsPixmapItem*>(m_graphicsScene->addPixmap(whiteBoardPixmap));
 	m_whitePixmap = static_cast<QGraphicsPixmapItem*>(m_graphicsScene->addPixmap(whiteBoardPixmap));
+	m_whitePixmap->update();
+	
 	m_pixmap->setEnabled(true);
 	m_pixmap->setVisible(true);
 	m_pixmap->setOpacity(1.80);
-
-	View::setOpacity();
-
 	m_pixmap->setAcceptHoverEvents(true);
 	m_pixmap->setAcceptTouchEvents(true);
 	m_pixmap->setZValue(-2);
 	m_pixmap->update();
-	m_whitePixmap->update();
+	View::setOpacity();
 	View::resetView();
 }
 
@@ -291,8 +295,6 @@ void View::onResetScene()
 
 void View::resetView()
 {
-
-	spdlog::trace("View::resetView()");
+	Logger->trace("View::resetView()");
 	setupMatrix();
-	
 }

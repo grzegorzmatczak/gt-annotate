@@ -15,12 +15,12 @@
 
 class ColorPicker : public QWidget
 {
-  Q_OBJECT
- public:
-  explicit ColorPicker(QJsonObject const &a_config, QWidget *parent = nullptr);
+	Q_OBJECT
+	public:
+		explicit ColorPicker(QJsonObject const &a_config, QWidget *parent = nullptr);
 
- signals:
-  void changeColor(QColor color);
+	signals:
+		void changeColor(QColor color);
 };
 
 #endif // COLORPICKER_H

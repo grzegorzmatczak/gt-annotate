@@ -36,7 +36,7 @@ class MainWindow : public QWidget
 	public slots:
 
 	private:
-		QProgressBar* m_progressBar;
+		
 		QMenu* m_fileMenu;
 		QMenuBar* m_menuBar;
 		
