@@ -1,4 +1,4 @@
-#include "graphicsview.h"
+#include "widgets/graphicsview.h"
 
 #ifndef QT_NO_OPENGL
 #include <QtOpenGL>

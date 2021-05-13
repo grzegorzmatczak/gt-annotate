@@ -1,4 +1,4 @@
-#include "graphicsscene.h"
+#include "widgets/graphicsscene.h"
 
 #ifndef QT_NO_OPENGL
 #include <QtOpenGL>

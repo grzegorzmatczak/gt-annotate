@@ -28,12 +28,9 @@ void MainWindow::configure(QJsonObject const& a_config)
 	QJsonObject jDataset = a_config[DATASET].toObject();
 
 	createMenus();
-	setupButtons();
 	setupView(a_config);
 	setupLayout();
 	setupMainWidget();
-
-	
 }
 
 void MainWindow::setupMainWidget() 
@@ -98,31 +95,6 @@ void MainWindow::setupView(QJsonObject const& a_config)
 }
 
 
-void MainWindow::setupButtons()
-{
-	// Buttons:
-	m_buttonLayout = new QHBoxLayout();
-	m_buttonLayout->setContentsMargins(1, 1, 0, 0);
-
-	m_loadButton = new QToolButton;
-	m_loadButton->setText(tr("Load Directory"));
-	m_loadButton->setChecked(false);
-	m_loadButton->setToolTip("Ładowanie folderu");
-	m_buttonLayout->addWidget(m_loadButton);
-
-	m_saveGTbutton = new QToolButton;
-	m_saveGTbutton->setText(tr("Save gt"));
-	m_saveGTbutton->setChecked(false);
-	m_buttonLayout->addWidget(m_saveGTbutton);
-
-	m_buttonContainer = new QWidget;
-	m_buttonContainer->setLayout(m_buttonLayout);
-
-	//connect(m_loadButton, SIGNAL(clicked()), this, SLOT(opendir()));
-
-	//connect(m_saveGTbutton, SIGNAL(clicked()), this, SLOT(saveGT()));
-	//connect(this, &MainWindow::saveGT, m_view, &View::onSsaveGT);
-}
 
 void MainWindow::setupLayout() 
 {
@@ -137,7 +109,7 @@ void MainWindow::setupLayout()
 
 	m_rightLayout = new QVBoxLayout;
 	m_rightLayout->setContentsMargins(0, 0, 0, 0);
-	m_rightLayout->addWidget(m_buttonContainer);
+	//m_rightLayout->addWidget(m_buttonContainer);
 	m_rightLayout->addWidget(m_labelList);
 	//m_rightLayout->addWidget(proxyView);
 	m_rightLayoutContainer = new QWidget;
@@ -149,3 +121,7 @@ void MainWindow::setupLayout()
 	m_rightWidget = new QWidget(this);
 	m_rightWidget->setLayout(m_gridLayout);
 }
+
+
+
+	

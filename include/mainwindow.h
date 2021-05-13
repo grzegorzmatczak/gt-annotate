@@ -4,7 +4,7 @@
 #include <QtWidgets>
 
 #include "includespdlog.h"
-#include "view.h"
+#include "widgets/view.h"
 
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
@@ -26,10 +26,10 @@ class MainWindow : public QWidget
 		void createMenus();
 		void setupView(QJsonObject const& a_config);
 		void setupButtons();
-		void setupLayout() ;
+        void setupLayout();
 
 	private slots:
-
+        
 	signals:
 	
 
@@ -39,10 +39,7 @@ class MainWindow : public QWidget
 		QProgressBar* m_progressBar;
 		QMenu* m_fileMenu;
 		QMenuBar* m_menuBar;
-		QHBoxLayout* m_buttonLayout;
-		QToolButton* m_loadButton;
-		QToolButton* m_saveGTbutton;
-		QWidget* m_buttonContainer;
+		
 		QTreeView* m_labelList;
 		QVBoxLayout* m_rightLayout;
 		QWidget* m_rightLayoutContainer;
@@ -51,7 +48,7 @@ class MainWindow : public QWidget
 
 	private:
 		View* m_view;
-	
+
 
 };
 

@@ -3,8 +3,11 @@
 
 #include <QtWidgets>
 #include "includespdlog.h"
-#include "graphicsscene.h"
-#include "graphicsview.h"
+#include "widgets/graphicsscene.h"
+#include "widgets/graphicsview.h"
+#include "widgets/colorpicker.h"
+#include "widgets/pensizepicker.h"
+#include "widgets/toolbar.h"
 
 
 class View : public QFrame
@@ -21,6 +24,7 @@ class View : public QFrame
 		void onPaintWhiteBoard(qint32 x, qint32 y);
 		void onZoomIn(qint32 delta);
   		void onZoomOut(qint32 delta);
+		
 
 	signals:
 		void setModePaint();
@@ -31,17 +35,39 @@ class View : public QFrame
 	private slots:
 		void setupMatrix();
 		void setOpacity();
+		void onChangeColor(QColor color);
+		void onChangePenSize(qint32 size);
+		void onLoadDirectory();
+
+	private:
+		void addImageToScene(QPixmap image);
+		void onResetScene();
+		void resetView();
+
+		void setupGraphicsView();
+		void setupSliders();
+		void setupLeftToolBar(QJsonObject const& a_config);
+		void setupCentralWidget();
+		void loadImage(QString imageName);
+		
 
 	private:
 		GraphicsView *m_graphicsView;
 		GraphicsScene *m_graphicsScene;
 
-		QVBoxLayout *m_zoomSliderLayout;
-		QVBoxLayout *m_opacityLayout;
 		QGridLayout *m_topLayout;
 		QSlider *m_opacitySlider;
 		QSlider *m_zoomSlider;
+		ToolBar* m_leftToolBar;
+		QHBoxLayout* m_buttonLayout;
+		QToolButton* m_loadButton;
+		QToolButton* m_saveGTbutton;
+		QWidget* m_buttonContainer;
 
+	private:
+		ColorPicker* m_colorPicker;
+		QTextBrowser* logViewer;
+		PenSizePicker* m_penSizePicker;
 
 	private:
 		qreal m_scaleOpacity;
@@ -51,6 +77,7 @@ class View : public QFrame
 		std::vector<struct colors> m_colors;
 		qint32 m_penSize{};
 		QColor m_color;
+
 	 private:
 		QColor m_colorBlack;
 		QColor m_colorWhite;
@@ -68,6 +95,8 @@ class View : public QFrame
 		QImage m_image;
 		QGraphicsPixmapItem *m_whitePixmap;
 		QGraphicsPixmapItem *m_pixmap;
+	private:
+        QString m_targetDirectoryPath;
 
 };
  
