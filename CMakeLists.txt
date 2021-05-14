@@ -80,7 +80,9 @@ add_executable(${PROJECT_NAME}
 add_library(${PROJECT_NAME}_lib STATIC
 ${SRC} ${HEADERS} )
 
-add_executable(g_test gtest/gtest.cc)
+file(GLOB_RECURSE SRC_HEADERS_TEST gtest/*.cc gtest/*.h)
+
+add_executable(g_test ${SRC_HEADERS_TEST})
 
 target_link_libraries(${PROJECT_NAME}_lib ${QT_LIBRARIES} ${OpenCV_LIBS} Threads::Threads spdlog)
 target_link_libraries(${PROJECT_NAME}_lib Qt5::Core Qt5::Network Qt5::Widgets Qt5::OpenGL)
