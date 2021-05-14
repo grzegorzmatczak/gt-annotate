@@ -2,12 +2,19 @@
 #define VIEW_H
 
 #include <QtWidgets>
+#include <QHash>
 #include "includespdlog.h"
 #include "widgets/graphicsscene.h"
 #include "widgets/graphicsview.h"
 #include "widgets/colorpicker.h"
 #include "widgets/pensizepicker.h"
 #include "widgets/toolbar.h"
+#include "widgets/paintersettings.h"
+
+#include <opencv2/imgproc.hpp>
+#include <opencv2/opencv.hpp>
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
 
 
 class View : public QFrame
@@ -18,7 +25,7 @@ class View : public QFrame
 		explicit View(QJsonObject const &a_config, QFrame *parent = nullptr);
 		QGraphicsView *view() const;
 
-		void configure(QJsonObject const &a_config);
+        void configure(QJsonObject const& a_config, QHash<QString, int>& m_colorInthash, QHash<QString, QColor>& m_colorHash);
 
 	public slots:
 		void onPaintWhiteBoard(qint32 x, qint32 y);
@@ -49,6 +56,9 @@ class View : public QFrame
 		void setupLeftToolBar(QJsonObject const& a_config);
 		void setupCentralWidget(QJsonObject const& a_config);
 		void loadImage(QString imageName);
+        void renderColorsFromImage(QString pathToImage);
+        void onPaintColorsFinish();
+        void onPaintColors(qint32 x, qint32 y, QColor color);
 		
 
 	private:
@@ -71,25 +81,11 @@ class View : public QFrame
 		PenSizePicker* m_penSizePicker;
 
 	private:
+        PainterSettings m_painterSettings;
 		qreal m_scaleOpacity;
 		qreal m_scale;
 
-	private:
-		std::vector<struct colors> m_colors;
-		qint32 m_penSize{};
-		QColor m_color;
 
-	 private:
-		QColor m_colorBlack;
-		QColor m_colorWhite;
-		QColor m_colorShadow;
-		QColor m_colorOutOfScope;
-		QColor m_colorUnknown;
-		qint32 m_intBlack{};
-		qint32 m_intWhite{};
-		qint32 m_intShadow{};
-		qint32 m_intOutOfScope{};
-		qint32 m_intUnknown{};
 
 	private:
 		QImage m_diff;
