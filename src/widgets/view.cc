@@ -1,26 +1,12 @@
 #include "widgets/view.h"
 
-constexpr auto NAME{ "Name" };
-constexpr auto COLORS{ "Colors" };
-constexpr auto BLACK{ "Black" };
-constexpr auto WHITE{ "White" };
-constexpr auto SHADOW{ "Shadow" };
-constexpr auto OUT_OF_SCOPE{ "OutOfScope" };
-constexpr auto UNKNOWN{ "Unknown" };
 
-constexpr auto ROI{ "ROI" };
-constexpr auto GRAY_COLOR{ "GrayColor" };
-constexpr auto R{ "R" };
-constexpr auto G{ "G" };
-constexpr auto B{ "B" };
-constexpr auto A{ "A" };
 
 
 View::View(QJsonObject const& a_config, QFrame* parent)
     : QFrame(parent)
     , m_graphicsScene(new GraphicsScene())
     , m_graphicsView(new GraphicsView())
-    , m_penSize(3)
 {
     Logger->trace("View::View()");
 
@@ -90,17 +76,40 @@ void View::setupGraphicsView()
     m_graphicsView->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     m_graphicsView->setScene(m_graphicsScene);
 
-    connect(this, &View::setModePaint, m_graphicsScene, &GraphicsScene::onSetModePaint);
-    connect(this, &View::setModeMove, m_graphicsScene, &GraphicsScene::onSetModeMoveSelect);
-    connect(this, &View::setModeROI, m_graphicsScene, &GraphicsScene::onSetModeROI);
-    connect(this, &View::resetScene, m_graphicsScene, &GraphicsScene::onResetScene);
-
     connect(m_graphicsScene, &GraphicsScene::paintWhiteBoard, this, &View::onPaintWhiteBoard);
     connect(m_graphicsView, &GraphicsView::zoomIn, this, &View::onZoomIn);
     connect(m_graphicsView, &GraphicsView::zoomOut, this, &View::onZoomOut);
 }
 
-void View::setupLeftToolBar(QJsonObject const& a_config) {
+void View::creteAction()
+{
+    Logger->trace("View::creteAction()");
+    action_paint = new QAction(tr("&Paint"), this);
+	action_move = new QAction(tr("&Move"), this);
+	action_ROI = new QAction(tr("&ROI"), this);
+    action_paint->setEnabled(true);
+    action_paint->setText("Paint");
+    action_paint->setToolTip("Rysowanie");
+
+	action_paint->setCheckable(true);
+	action_move->setCheckable(true);
+	action_ROI->setCheckable(true);
+
+    connect(action_paint, &QAction::triggered, this, &View::onSetPaint);
+	connect(action_move, &QAction::triggered, this, &View::onSetMove);
+	connect(action_ROI, &QAction::triggered, this, &View::onSetROI);
+
+    action_loadDirectory = new QAction(tr("&Load Directory"), this);
+	//action_loadDirectory->setShortcuts(QKeySequence::New);
+	action_loadDirectory->setStatusTip(tr("Load Directory"));
+    
+    connect(action_loadDirectory, &QAction::triggered, this, &View::onLoadDirectory);
+    View::onSetPaint();
+}
+
+void View::setupLeftToolBar(QJsonObject const& a_config) 
+{
+    View::creteAction();
     Logger->trace("View::setupLeftToolBar()");
     m_leftToolBar = new ToolBar();
     m_leftToolBar->setWindowFlag(Qt::FramelessWindowHint);
@@ -114,7 +123,13 @@ void View::setupLeftToolBar(QJsonObject const& a_config) {
     connect(m_penSizePicker, &PenSizePicker::changePenSize, this, &View::onChangePenSize);
 
     m_leftToolBar->addSeparator();
-
+    
+	m_leftToolBar->addAction(action_paint);
+	m_leftToolBar->addAction(action_move);
+	m_leftToolBar->addAction(action_ROI);
+    m_leftToolBar->addSeparator();
+    m_leftToolBar->addAction(action_loadDirectory);
+    m_leftToolBar->addSeparator();
     m_loadButton = new QToolButton;
     m_loadButton->setText(tr("Load Directory"));
     m_loadButton->setChecked(false);
@@ -141,19 +156,6 @@ void View::onLoadDirectory()
     View::renderColorsFromImage("/home/gm/Obrazy/temp2.png");
 }
 
-void View::onChangeColor(QColor color)
-{
-    qDebug() << "View::onChangeColor:" << color;
-    m_color = color;
-}
-
-void View::onChangePenSize(qint32 size)
-{
-    qDebug() << "View::onChangePenSize:" << size;
-    m_penSize = size;
-}
-
-
 QGraphicsView* View::view() const
 {
     return static_cast<QGraphicsView*>(m_graphicsView);
@@ -178,18 +180,18 @@ void View::setOpacity()
 
 void View::onPaintWhiteBoard(qint32 x, qint32 y)
 {
-    if (m_penSize == 1)
+    if (m_painterSettings.m_penSize == 1)
     {
-        m_diff.setPixelColor(x, y, m_color);
+        m_diff.setPixelColor(x, y, m_painterSettings.m_color);
     }
-    else if (m_penSize > 1 && m_penSize < 20)
+    else if (m_painterSettings.m_penSize > 1 && m_painterSettings.m_penSize < 20)
     {
-        qint32 it = m_penSize - 1;
+        qint32 it = m_painterSettings.m_penSize - 1;
         for (int zx = -it; zx <= it; zx++)
         {
             for (int zy = -it; zy <= it; zy++)
             {
-                m_diff.setPixelColor(x + zx, y + zy, m_color);
+                m_diff.setPixelColor(x + zx, y + zy, m_painterSettings.m_color);
             }
         }
     }
@@ -276,19 +278,19 @@ void View::renderColorsFromImage(QString pathToImage)
 	{
 		cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
 
-		for (qint32 color = 0; color < m_colors.size(); color++)
+		for (qint32 color = 0; color < m_painterSettings.m_colors.size(); color++)
 		{
-            if (m_colors[color] == BLACK)
+            /*if (m_painterSettings.m_colors[color] == BLACK)
 			{
 				continue;
-			}
+			}*/
 			for (int i = 0; i < image.cols; i++)
 			{
 				for (int j = 0; j < image.rows; j++)
 				{
-                    if ( m_colorInthash[m_colors[color]] == image.at<unsigned char>(j, i))
+                    if ( m_painterSettings.m_colorInthash[m_painterSettings.m_colors[color]] == image.at<unsigned char>(j, i))
 					{
-                        onPaintColors(i, j, m_colorHash[m_colors[color]]);
+                        onPaintColors(i, j, m_painterSettings.m_colorHash[m_painterSettings.m_colors[color]]);
 					}
 				}
 
@@ -319,4 +321,43 @@ void View::onPaintColorsFinish()
 {
     Logger->trace("View::onPaintColorsFinish()");
     m_whitePixmap->setPixmap(QPixmap::fromImage(m_diff));
+}
+
+void View::onChangeColor(QColor color)
+{
+    qDebug() << "View::onChangeColor:" << color;
+    m_painterSettings.m_color = color;
+}
+
+void View::onChangePenSize(qint32 size)
+{
+    qDebug() << "View::onChangePenSize:" << size;
+    m_painterSettings.m_penSize = size;
+}
+
+void View::onSetPaint()
+{
+    Logger->trace("View::setPaint()");
+	action_move->setChecked(false);
+	action_ROI->setChecked(false);
+    m_graphicsView->setDragMode(QGraphicsView::NoDrag);
+    m_graphicsScene->setMode(uiMode::Paint);
+}
+
+void View::onSetMove()
+{
+    Logger->trace("View::setMove()");
+	action_paint->setChecked(false);
+	action_ROI->setChecked(false);
+    m_graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
+    m_graphicsScene->setMode(uiMode::MoveSelect);
+}
+
+void View::onSetROI()
+{
+    Logger->trace("View::setROI()");
+	action_move->setChecked(false);
+	action_paint->setChecked(false);
+    m_graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
+    m_graphicsScene->setMode(uiMode::SelectROI);
 }

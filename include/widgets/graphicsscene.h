@@ -6,6 +6,7 @@
 #include <QPen>
 
 #include "structures.h"
+#include "includespdlog.h"
 
 
 class GraphicsScene : public QGraphicsScene
@@ -17,12 +18,10 @@ class GraphicsScene : public QGraphicsScene
 	public:
 		void onPaintWhiteBoard(qreal x, qreal y);
 		QRectF transformPos(QRectF pos);
+		void resetScene();
+		void setMode(uiMode mode);
 
 	public slots:
-		void onSetModeROI();
-		void onSetModePaint();
-		void onSetModeMoveSelect();
-		void onResetScene();
 
 	signals:
 		void addRectToScene(QPointF startPoint, QPointF stopPoint, bool dialog, QString name);

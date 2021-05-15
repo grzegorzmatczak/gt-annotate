@@ -51,3 +51,4 @@ ColorPicker::ColorPicker(QJsonObject const &a_config, QWidget *parent)
 
 	setLayout(Layout);
 }
+

@@ -20,6 +20,7 @@ QRectF GraphicsScene::transformPos(QRectF pos)
 
 void GraphicsScene::mousePressEvent(QGraphicsSceneMouseEvent* e)
 {
+	Logger->trace("GraphicsScene::mousePressEvent()");
 	if (m_mode == uiMode::Paint && e->buttons() == Qt::LeftButton)
 	{
 		qreal xreal = e->scenePos().x();
@@ -50,8 +51,9 @@ void GraphicsScene::mousePressEvent(QGraphicsSceneMouseEvent* e)
 	}
 }
 
-void GraphicsScene::onResetScene()
+void GraphicsScene::resetScene()
 {
+	Logger->trace("GraphicsScene::resetScene()");
 	QList<QGraphicsItem*> all = items();
 	for (int i = 0; i < all.size(); i++)
 	{
@@ -91,6 +93,7 @@ void GraphicsScene::onPaintWhiteBoard(qreal x, qreal y)
 
 void GraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
 {
+	Logger->trace("GraphicsScene::mouseReleaseEvent()");
 	if (m_mode == uiMode::Paint)
 	{
 	}
@@ -116,19 +119,10 @@ void GraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
 	}
 }
 
-void GraphicsScene::onSetModeROI()
+void GraphicsScene::setMode(uiMode mode)
 {
-	m_mode = uiMode::SelectROI;
-}
-
-void GraphicsScene::onSetModePaint()
-{
-	m_mode = uiMode::Paint;
-}
-
-void GraphicsScene::onSetModeMoveSelect()
-{
-	m_mode = uiMode::MoveSelect;
+	Logger->trace("GraphicsScene::setMode()");
+	m_mode = mode;
 }
 
 void GraphicsScene::keyPressEvent(QKeyEvent* event)

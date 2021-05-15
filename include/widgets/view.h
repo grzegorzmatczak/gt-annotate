@@ -31,7 +31,8 @@ class View : public QFrame
 		void onPaintWhiteBoard(qint32 x, qint32 y);
 		void onZoomIn(qint32 delta);
   		void onZoomOut(qint32 delta);
-		
+		void onChangeColor(QColor color);
+		void onChangePenSize(qint32 size);	
 
 	signals:
 		void setModePaint();
@@ -42,8 +43,9 @@ class View : public QFrame
 	private slots:
 		void setupMatrix();
 		void setOpacity();
-		void onChangeColor(QColor color);
-		void onChangePenSize(qint32 size);
+		void onSetPaint();
+		void onSetMove();
+		void onSetROI();
 		void onLoadDirectory();
 
 	private:
@@ -59,6 +61,7 @@ class View : public QFrame
         void renderColorsFromImage(QString pathToImage);
         void onPaintColorsFinish();
         void onPaintColors(qint32 x, qint32 y, QColor color);
+		void creteAction();
 		
 
 	private:
@@ -94,6 +97,12 @@ class View : public QFrame
 		QGraphicsPixmapItem *m_pixmap;
 	private:
         QString m_targetDirectoryPath;
+
+	private:
+		QAction* action_paint;
+		QAction* action_move;
+		QAction* action_ROI;
+		QAction* action_loadDirectory;
 
 };
  

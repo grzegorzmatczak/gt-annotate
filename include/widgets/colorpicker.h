@@ -19,8 +19,11 @@ class ColorPicker : public QWidget
 	public:
 		explicit ColorPicker(QJsonObject const &a_config, QWidget *parent = nullptr);
 
+
 	signals:
 		void changeColor(QColor color);
+
+
 };
 
 #endif // COLORPICKER_H
