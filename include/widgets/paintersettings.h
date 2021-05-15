@@ -2,23 +2,34 @@
 #define PAINTERSETTINGS_H
 
 #include <QObject>
+#include <QColor>
+#include <QHash>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QDebug>
+
+
+#include "includespdlog.h"
 
 class PainterSettings
 {
-    Q_OBJECT
+    //Q_OBJECT
     public:
         PainterSettings();
         void configureColors(QJsonObject const& a_config);
 
-    private:
+    
+
+    public:
         std::vector<QString> m_colors;
-        qint32 m_penSize{};
+        int m_penSize{};
         QColor m_color;
 
-    private:
+    public:
         QHash<QString, QColor> m_colorHash;
         QHash<QString, int> m_colorInthash;
 };
+
 
 
 #endif // PAINTERSETTINGS_H

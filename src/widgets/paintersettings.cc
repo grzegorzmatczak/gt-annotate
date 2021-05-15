@@ -1,4 +1,22 @@
-#include "paintersettings.h"
+#include "widgets/paintersettings.h"
+
+
+
+constexpr auto NAME{ "Name" };
+constexpr auto COLORS{ "Colors" };
+constexpr auto BLACK{ "Black" };
+constexpr auto WHITE{ "White" };
+constexpr auto SHADOW{ "Shadow" };
+constexpr auto OUT_OF_SCOPE{ "OutOfScope" };
+constexpr auto UNKNOWN{ "Unknown" };
+
+constexpr auto ROI{ "ROI" };
+constexpr auto GRAY_COLOR{ "GrayColor" };
+constexpr auto R{ "R" };
+constexpr auto G{ "G" };
+constexpr auto B{ "B" };
+constexpr auto A{ "A" };
+
 
 PainterSettings::PainterSettings()
 {
@@ -26,3 +44,4 @@ void PainterSettings::configureColors(QJsonObject const& a_config)
     qDebug() << "m_colorInthash:" << m_colorInthash;
     qDebug() << "m_colorHash:" << m_colorHash;
 }
+
