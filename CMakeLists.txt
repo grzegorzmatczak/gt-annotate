@@ -70,15 +70,27 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 clone_build(spdlog)
 
-file(GLOB_RECURSE SRC src/*.cc src/*.c src/*.cpp)
-file(GLOB_RECURSE HEADERS include/*.h include/*.hpp)
+set(SRC_MAIN src/main.cc)
+set(SRC
+  src/configreader.cc
+  src/includespdlog.cc
+  src/mainwindow.cc)
+set(HEADERS
+  include/configreader.h
+  include/includespdlog.h
+  include/mainwindow.h)
 
-add_executable(${PROJECT_NAME}
-    ${SRC}
-    ${HEADERS})
+file(GLOB_RECURSE SRC_WIDGETS src/widgets/*.cc)
+file(GLOB_RECURSE HEADERS_WIDGETS include/widgets/*.h)
 
 add_library(${PROJECT_NAME}_lib STATIC
-${SRC} ${HEADERS} )
+	${SRC} ${HEADERS} 
+	${SRC_WIDGETS} ${HEADERS_WIDGETS})
+
+add_executable(${PROJECT_NAME}
+    ${SRC_MAIN})
+
+
 
 file(GLOB_RECURSE SRC_HEADERS_TEST gtest/*.cc gtest/*.h)
 
