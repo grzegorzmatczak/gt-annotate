@@ -20,6 +20,9 @@ QRectF GraphicsScene::transformPos(QRectF pos)
 
 void GraphicsScene::mousePressEvent(QGraphicsSceneMouseEvent* e)
 {
+	qDebug() << "GraphicsScene::mousePressEvent pos:" << e->pos();
+	qDebug() << "GraphicsScene::mousePressEvent scenePos:" << e->scenePos();
+	QGraphicsScene::mousePressEvent(e);
 	Logger->trace("GraphicsScene::mousePressEvent()");
 	if (m_mode == uiMode::Paint && e->buttons() == Qt::LeftButton)
 	{
@@ -67,6 +70,7 @@ void GraphicsScene::resetScene()
 
 void GraphicsScene::mouseMoveEvent(QGraphicsSceneMouseEvent* e)
 {
+	Logger->trace("GraphicsScene::mouseMoveEvent()");
 	if (m_mode == uiMode::Paint && e->buttons() == Qt::LeftButton)
 	{
 		qreal xreal = e->scenePos().rx();

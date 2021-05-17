@@ -24,6 +24,7 @@ class PainterSettings
         std::vector<QString> m_colors;
         int m_penSize{};
         QColor m_color;
+        qreal m_scale;
 
     public:
         QHash<QString, QColor> m_colorHash;

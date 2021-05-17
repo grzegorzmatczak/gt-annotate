@@ -6,6 +6,8 @@
 
 //#include "shape.h"
 #include "structures.h"
+#include "includespdlog.h"
+#include "widgets/paintersettings.h"
 
 class GraphicsView : public QGraphicsView
 {
@@ -17,6 +19,7 @@ class GraphicsView : public QGraphicsView
 	public:
 		bool drawing();
 		bool editing();
+		 void setPainterSettings(PainterSettings * painterSettings);
 
 	protected:
 		void wheelEvent(QWheelEvent *) override;
@@ -37,6 +40,11 @@ class GraphicsView : public QGraphicsView
 	// QWidget interface
 	protected:
 		void mouseMoveEvent(QMouseEvent *event) override;
+		void paintEvent(QPaintEvent *event) override;
+	private:
+		QPointF m_point;
+		PainterSettings * m_painterSettings;
+
 
 };
 

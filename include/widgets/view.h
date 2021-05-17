@@ -86,9 +86,6 @@ class View : public QFrame
 	private:
         PainterSettings m_painterSettings;
 		qreal m_scaleOpacity;
-		qreal m_scale;
-
-
 
 	private:
 		QImage m_diff;

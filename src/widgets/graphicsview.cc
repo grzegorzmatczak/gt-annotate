@@ -1,5 +1,7 @@
 #include "widgets/graphicsview.h"
 
+#include <QPainter>
+
 #ifndef QT_NO_OPENGL
 #include <QtOpenGL>
 #else
@@ -59,24 +61,61 @@ bool GraphicsView::editing()
 
 void GraphicsView::mousePressEvent(QMouseEvent* e)
 {
-#if(DEBUG)
-	H_Logger->trace("GraphicsView::mousePressEvent()");
-#endif
+	Logger->trace("GraphicsView::mousePressEvent()");
 	m_initPos = e->pos();
-#if(DEBUG)
 	qDebug() << "GraphicsView::mousePressEvent" << e->pos();
-#endif
-	if (e->buttons() == Qt::MiddleButton)
-	{
-	}
-	this->repaint();
 	QGraphicsView::mousePressEvent(e);
 }
 
+ void GraphicsView::setPainterSettings(PainterSettings * painterSettings)
+ {
+	 m_painterSettings = painterSettings;
+ }
+
 void GraphicsView::mouseMoveEvent(QMouseEvent* event)
 {
-#if(DEBUG)
-	H_Logger->trace("GraphicsView::mouseMoveEvent()")
-#endif
+	Logger->trace("GraphicsView::mouseMoveEvent()");
+	m_point = event->pos();
+	viewport()->repaint();
 	QGraphicsView::mouseMoveEvent(event);
+}
+
+void GraphicsView::paintEvent(QPaintEvent *event) 
+{
+	QGraphicsView::paintEvent(event);
+
+	int pen_size = m_painterSettings->m_penSize;
+	qreal scale = m_painterSettings->m_scale;
+	QPen pen(m_painterSettings->m_color, 1, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin);
+
+	QPainter painter_id(viewport());
+	painter_id.setRenderHint(QPainter::Antialiasing, false);
+	painter_id.setPen(pen);
+
+	if (pen_size == 2)
+	{
+		QRectF rectangle(
+						(m_point.x()) - pen_size/2 * scale, 
+						(m_point.y()) - pen_size/2 * scale, 
+						pen_size * scale, pen_size * scale);
+		painter_id.drawRect(rectangle);
+	}
+	if (pen_size == 3)
+	{
+		QRectF rectangle(
+						(m_point.x()) - (pen_size+2)/2 * scale, 
+						(m_point.y()) - (pen_size+2)/2 * scale, 
+						(pen_size+1) * scale, (pen_size+1) * scale);
+		painter_id.drawRect(rectangle);
+	}
+	if (pen_size == 4)
+	{
+		QRectF rectangle(
+						(m_point.x()) - (pen_size+4)/2 * scale, 
+						(m_point.y()) - (pen_size+4)/2 * scale, 
+						(pen_size+2) * scale, (pen_size+2) * scale);
+		painter_id.drawRect(rectangle);
+	}
+	
+	painter_id.end();
 }
