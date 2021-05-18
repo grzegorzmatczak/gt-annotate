@@ -183,7 +183,7 @@ void View::onPaintWhiteBoard(qint32 x, qint32 y)
 {
 	if (m_painterSettings.m_penSize == 1)
 	{
-		m_diff.setPixelColor(x, y, m_painterSettings.m_color);
+		m_paintImage.setPixelColor(x, y, m_painterSettings.m_color);
 	}
 	else if (m_painterSettings.m_penSize > 1 && m_painterSettings.m_penSize < 20)
 	{
@@ -192,11 +192,11 @@ void View::onPaintWhiteBoard(qint32 x, qint32 y)
 		{
 			for (int zy = -it; zy <= it; zy++)
 			{
-				m_diff.setPixelColor(x + zx, y + zy, m_painterSettings.m_color);
+				m_paintImage.setPixelColor(x + zx, y + zy, m_painterSettings.m_color);
 			}
 		}
 	}
-	m_whitePixmap->setPixmap(QPixmap::fromImage(m_diff));
+	m_whitePixmap->setPixmap(QPixmap::fromImage(m_paintImage));
 }
 
 void View::onZoomIn(qint32 delta)
@@ -225,16 +225,16 @@ void View::addImageToScene(QPixmap image)
 	//m_pixmap = static_cast<GraphicsPixmapItem*>(m_graphicsScene->addPixmap(image));
 	m_pixmap = static_cast<QGraphicsPixmapItem*>(m_graphicsScene->addPixmap(image));
 	m_image = image.toImage();
-	m_diff = image.toImage();
+	m_paintImage = image.toImage();
 
-	for (int y = 0; y < m_diff.height(); y++)
+	for (int y = 0; y < m_paintImage.height(); y++)
 	{
-		for (int x = 0; x < m_diff.width(); x++)
+		for (int x = 0; x < m_paintImage.width(); x++)
 		{
-			m_diff.setPixelColor(x, y, QColor{ 255, 255, 0, 127 });
+			m_paintImage.setPixelColor(x, y, QColor{ 255, 255, 0, 127 });
 		}
 	}
-	QPixmap whiteBoardPixmap = QPixmap::fromImage(m_diff);
+	QPixmap whiteBoardPixmap = QPixmap::fromImage(m_paintImage);
 	//m_whitePixmap = static_cast<GraphicsPixmapItem*>(m_graphicsScene->addPixmap(whiteBoardPixmap));
 	m_whitePixmap = static_cast<QGraphicsPixmapItem*>(m_graphicsScene->addPixmap(whiteBoardPixmap));
 	m_whitePixmap->update();
@@ -246,6 +246,18 @@ void View::addImageToScene(QPixmap image)
 	m_pixmap->setAcceptTouchEvents(true);
 	m_pixmap->setZValue(-2);
 	m_pixmap->update();
+
+	//m_gridImage;// = QPixmap(QSize(m_paintImage.width(), m_paintImage.height()));
+	m_gridImage = image.toImage();
+	m_gridImage.fill(QColor{125,0,0,127});
+	QPixmap gridBoardPixmap = QPixmap::fromImage(m_gridImage);
+	m_gridPixmap = static_cast<QGraphicsPixmapItem*>(m_graphicsScene->addPixmap(gridBoardPixmap));
+	m_gridPixmap->setOpacity(1.80);
+	m_gridPixmap->setZValue(-2);
+	m_gridPixmap->update();
+	m_gridPixmap->setEnabled(true);
+	m_gridPixmap->setVisible(true);
+
 	View::setOpacity();
 	View::resetView();
 }
@@ -315,13 +327,13 @@ void View::renderColorsFromImage(QString pathToImage)
 
 void View::onPaintColors(qint32 x, qint32 y, QColor color)
 {
-	m_diff.setPixelColor(x, y, color);
+	m_paintImage.setPixelColor(x, y, color);
 }
 
 void View::onPaintColorsFinish()
 {
 	Logger->trace("View::onPaintColorsFinish()");
-	m_whitePixmap->setPixmap(QPixmap::fromImage(m_diff));
+	m_whitePixmap->setPixmap(QPixmap::fromImage(m_paintImage));
 }
 
 void View::onChangeColor(QColor color)

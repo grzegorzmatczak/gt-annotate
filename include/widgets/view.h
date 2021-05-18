@@ -88,10 +88,12 @@ class View : public QFrame
 		qreal m_scaleOpacity;
 
 	private:
-		QImage m_diff;
+		QImage m_paintImage;
+		QImage m_gridImage;
 		QImage m_image;
 		QGraphicsPixmapItem *m_whitePixmap;
 		QGraphicsPixmapItem *m_pixmap;
+		QGraphicsPixmapItem *m_gridPixmap;
 	private:
         QString m_targetDirectoryPath;
 
