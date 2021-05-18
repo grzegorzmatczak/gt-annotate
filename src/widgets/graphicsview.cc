@@ -111,8 +111,8 @@ void GraphicsView::paintEvent(QPaintEvent *event)
 	if (pen_size == 4)
 	{
 		QRectF rectangle(
-						(m_point.x()) - (pen_size+4)/2 * scale, 
-						(m_point.y()) - (pen_size+4)/2 * scale, 
+						(m_point.x()) - (pen_size+3)/2 * scale, 
+						(m_point.y()) - (pen_size+3)/2 * scale, 
 						(pen_size+2) * scale, (pen_size+2) * scale);
 		painter_id.drawRect(rectangle);
 	}
