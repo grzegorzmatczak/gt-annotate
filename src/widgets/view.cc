@@ -247,16 +247,16 @@ void View::addImageToScene(QPixmap image)
 	m_pixmap->setZValue(-2);
 	m_pixmap->update();
 
-	//m_gridImage;// = QPixmap(QSize(m_paintImage.width(), m_paintImage.height()));
-	m_gridImage = image.toImage();
-	m_gridImage.fill(QColor{125,0,0,127});
-	QPixmap gridBoardPixmap = QPixmap::fromImage(m_gridImage);
-	m_gridPixmap = static_cast<QGraphicsPixmapItem*>(m_graphicsScene->addPixmap(gridBoardPixmap));
-	m_gridPixmap->setOpacity(1.80);
-	m_gridPixmap->setZValue(-2);
-	m_gridPixmap->update();
-	m_gridPixmap->setEnabled(true);
-	m_gridPixmap->setVisible(true);
+	QPen pen;
+
+	pen.setStyle(Qt::SolidLine);
+	pen.setWidth(1);
+	pen.setBrush(Qt::green);
+	pen.setCapStyle(Qt::SquareCap);
+	pen.setJoinStyle(Qt::MiterJoin);
+	m_graphicsScene->addRect(1,1,2,2,pen);
+	m_graphicsScene->addRect(5.5,5.5,5,5,pen);
+	m_graphicsScene->addRect(11.5,11.5,5,5,pen);
 
 	View::setOpacity();
 	View::resetView();
