@@ -16,6 +16,8 @@ View::View(QJsonObject const& a_config, QFrame* parent)
 
 	Logger->trace("View::View() setupMatrix");
 	setupMatrix();
+	View::onChangePenSize(3);
+	View::onLoadDirectory();
 }
 
 void View::setupCentralWidget(QJsonObject const& a_config)
@@ -257,6 +259,15 @@ void View::addImageToScene(QPixmap image)
 	m_graphicsScene->addRect(1,1,2,2,pen);
 	m_graphicsScene->addRect(5.5,5.5,5,5,pen);
 	m_graphicsScene->addRect(11.5,11.5,5,5,pen);
+
+	QRectF tempRectToText = QRectF(250.5, 250.5, 5, 5);
+	QGraphicsRectItem * item = new QGraphicsRectItem();
+	item->setRect(tempRectToText);
+	item->setPen(pen);
+	item->setEnabled(true);
+	item->setVisible(true);
+	item->setFlags( QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsFocusable);
+	m_graphicsScene->addItem(item);
 
 	View::setOpacity();
 	View::resetView();
