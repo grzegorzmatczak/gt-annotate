@@ -72,13 +72,18 @@ clone_build(spdlog)
 
 set(SRC_MAIN src/main.cc)
 set(SRC
-  src/configreader.cc
-  src/includespdlog.cc
   src/mainwindow.cc)
 set(HEADERS
-  include/configreader.h
-  include/includespdlog.h
   include/mainwindow.h)
+
+set(SRC_UTILS
+  src/utils/configreader.cc
+  src/utils/includespdlog.cc
+)
+set(HEADERS_UTILS
+  include/utils/configreader.h
+  include/utils/includespdlog.h
+)
 
 file(GLOB_RECURSE SRC_WIDGETS src/widgets/*.cc)
 file(GLOB_RECURSE HEADERS_WIDGETS include/widgets/*.h)
@@ -86,6 +91,9 @@ file(GLOB_RECURSE HEADERS_WIDGETS include/widgets/*.h)
 add_library(${PROJECT_NAME}_lib STATIC
 	${SRC} ${HEADERS} 
 	${SRC_WIDGETS} ${HEADERS_WIDGETS})
+
+add_library(utils STATIC
+	${SRC_UTILS} ${HEADERS_UTILS})
 
 add_executable(${PROJECT_NAME}
     ${SRC_MAIN})
@@ -96,13 +104,16 @@ file(GLOB_RECURSE SRC_HEADERS_TEST gtest/*.cc gtest/*.h)
 
 add_executable(g_test ${SRC_HEADERS_TEST})
 
-target_link_libraries(${PROJECT_NAME}_lib ${QT_LIBRARIES} ${OpenCV_LIBS} Threads::Threads spdlog)
+target_link_libraries(utils ${QT_LIBRARIES} spdlog)
+target_link_libraries(utils Qt5::Core)
+
+target_link_libraries(${PROJECT_NAME}_lib ${QT_LIBRARIES} ${OpenCV_LIBS} Threads::Threads utils)
 target_link_libraries(${PROJECT_NAME}_lib Qt5::Core Qt5::Network Qt5::Widgets Qt5::OpenGL)
 
-target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_lib ${QT_LIBRARIES} ${OpenCV_LIBS} Threads::Threads spdlog)
+target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_lib ${QT_LIBRARIES} ${OpenCV_LIBS} Threads::Threads utils)
 target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_lib Qt5::Core Qt5::Network Qt5::Widgets Qt5::OpenGL)
 
-target_link_libraries(g_test ${PROJECT_NAME}_lib gtest gmock spdlog)
+target_link_libraries(g_test ${PROJECT_NAME}_lib gtest gmock utils)
 target_link_libraries(g_test ${PROJECT_NAME}_lib Qt5::Core Threads::Threads Qt5::OpenGL)
 
 
