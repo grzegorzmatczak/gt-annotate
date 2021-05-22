@@ -3,7 +3,7 @@
 
 #include <QtWidgets>
 
-#include "includespdlog.h"
+#include "utils/includespdlog.h"
 #include "widgets/view.h"
 
 #include <opencv2/imgproc.hpp>

@@ -1,4 +1,4 @@
-#include "../include/configreader.h"
+#include "utils/configreader.h"
 
 ConfigReader::ConfigReader() {
 	Logger->trace("ConfigReader::ConfigReader()");

@@ -6,7 +6,7 @@
 #include <QFile>
 #include <QJsonDocument>
 
-#include "includespdlog.h"
+#include "utils/includespdlog.h"
 
 class ConfigReader : public QObject
 {
