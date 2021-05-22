@@ -6,7 +6,7 @@
 #include <QPen>
 
 #include "structures.h"
-#include "includespdlog.h"
+#include "utils/includespdlog.h"
 
 
 class GraphicsScene : public QGraphicsScene

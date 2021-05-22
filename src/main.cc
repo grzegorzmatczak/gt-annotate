@@ -1,9 +1,9 @@
 #include <QApplication>
 #include <QStandardItemModel>
 
-#include "../include/configreader.h"
-#include "../include/includespdlog.h"
-#include "../include/mainwindow.h"
+#include "utils/configreader.h"
+#include "utils/includespdlog.h"
+#include "mainwindow.h"
 
 constexpr auto CONFIG{ "config.json" };
 constexpr auto LOG_LEVEL{ "LogLevel" };

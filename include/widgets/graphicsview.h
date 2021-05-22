@@ -6,7 +6,7 @@
 
 //#include "shape.h"
 #include "structures.h"
-#include "includespdlog.h"
+#include "utils/includespdlog.h"
 #include "widgets/paintersettings.h"
 
 class GraphicsView : public QGraphicsView
