@@ -3,12 +3,15 @@
 	{
 		"LogLevel": 0
 	},
-	"Colors":
+	"ColorsForeground":
 	[
-		{"Name":"Bird","GrayColor":0,"R":255,"G":255,"B":0,"A":100},
-		{"Name":"White","GrayColor":255,"R":0,"G":0,"B":255,"A":100},
-		{"Name":"Dron","GrayColor":50,"R":0,"G":255,"B":0,"A":100},
-		{"Name":"OutOfScope","GrayColor":85,"R":0,"G":255,"B":255,"A":100},
-		{"Name":"Unknown","GrayColor":170,"R":255,"G":0,"B":0,"A":100}
+		{"Name":"bird","GrayColor":0,"R":255,"G":255,"B":0,"A":100},
+		{"Name":"dron","GrayColor":50,"R":0,"G":255,"B":0,"A":100},
+		{"Name":"UAV","GrayColor":85,"R":0,"G":255,"B":255,"A":100},
+		{"Name":"person","GrayColor":170,"R":255,"G":0,"B":0,"A":100}
+	],
+	"ColorsBackground":
+	[ 
+		{"Name":"background","GrayColor":255,"R":0,"G":0,"B":255,"A":100}
 	]
 }
