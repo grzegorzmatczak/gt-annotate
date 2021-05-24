@@ -5,7 +5,6 @@
 #define THREADS 8
 
 constexpr auto NAME{ "Name" };
-constexpr auto COLORS{ "Colors" };
 constexpr auto GENERAL{ "General" };
 constexpr auto LOG_LEVEL{ "LogLevel" };
 constexpr auto DATASET{ "Dataset" };
@@ -24,7 +23,6 @@ MainWindow::MainWindow(QJsonObject const& a_config)
 
 void MainWindow::configure(QJsonObject const& a_config) 
 {
-	QJsonObject jColors = a_config[COLORS].toObject();
 	QJsonObject jDataset = a_config[DATASET].toObject();
 
 	createMenus();
@@ -54,9 +52,9 @@ void MainWindow::setupMainWidget()
 
 void MainWindow::createMenus()
 {
-	m_menuBar = new QMenuBar(this);
-	m_fileMenu = m_menuBar->addMenu(tr("&File"));
-	m_fileMenu->addSeparator();
+	//m_menuBar = new QMenuBar(this);
+	//m_fileMenu = m_menuBar->addMenu(tr("&File"));
+	//m_fileMenu->addSeparator();
 }
 
 void MainWindow::setupView(QJsonObject const& a_config)
@@ -79,7 +77,7 @@ void MainWindow::setupLayout()
 	m_rightLayout = new QVBoxLayout;
 	m_rightLayout->setContentsMargins(0, 0, 0, 0);
 	//m_rightLayout->addWidget(m_buttonContainer);
-	m_rightLayout->addWidget(m_labelList);
+	//m_rightLayout->addWidget(m_labelList);
 	//m_rightLayout->addWidget(proxyView);
 	m_rightLayoutContainer = new QWidget;
 	m_rightLayoutContainer->setLayout(m_rightLayout);
