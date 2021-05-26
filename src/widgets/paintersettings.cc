@@ -1,9 +1,8 @@
 #include "widgets/paintersettings.h"
 
-
-
 constexpr auto NAME{ "Name" };
-constexpr auto COLORS{ "Colors" };
+constexpr auto COLORS_FOREGROUND{ "ColorsForeground" };
+constexpr auto COLORS_BACKGROUND{ "ColorsBackground" };
 constexpr auto BLACK{ "Black" };
 constexpr auto WHITE{ "White" };
 constexpr auto SHADOW{ "Shadow" };
@@ -26,7 +25,7 @@ PainterSettings::PainterSettings()
 void PainterSettings::configureColors(QJsonObject const& a_config)
 {
     Logger->trace("PainterSettings::configureColors()");
-    auto _colors = a_config[COLORS].toArray();
+    auto _colors = a_config[COLORS_FOREGROUND].toArray();
     for (int i = 0; i < _colors.size(); i++)
     {
         auto _colorsIter = _colors[i].toObject();
