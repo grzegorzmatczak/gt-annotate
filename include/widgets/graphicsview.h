@@ -5,8 +5,7 @@
 #include <QObject>
 
 //#include "shape.h"
-#include "structures.h"
-#include "utils/includespdlog.h"
+#include "widgets/structures.h"
 #include "widgets/paintersettings.h"
 
 class GraphicsView : public QGraphicsView

@@ -5,8 +5,7 @@
 #include <QObject>
 #include <QPen>
 
-#include "structures.h"
-#include "utils/includespdlog.h"
+#include "widgets/structures.h"
 
 
 class GraphicsScene : public QGraphicsScene
