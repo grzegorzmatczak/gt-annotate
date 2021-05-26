@@ -7,6 +7,9 @@
 #include <QLabel>
 #include <QWidget>
 
+#include "widgets/structures.h"
+
+
 class PenSizePicker : public QWidget
 {
 	Q_OBJECT
