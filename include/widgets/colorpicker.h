@@ -11,7 +11,7 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-#include "structures.h"
+#include "widgets/structures.h"
 
 class ColorPicker : public QWidget
 {
@@ -19,11 +19,14 @@ class ColorPicker : public QWidget
 	public:
 		explicit ColorPicker(QJsonObject const &a_config, QWidget *parent = nullptr);
 
-
+	private:
+		int addColors(QString color);
 	signals:
 		void changeColor(QColor color);
-
-
+	
+	private:
+		QJsonObject m_config;
+		QComboBox *m_colorPenComboBox;
 };
 
 #endif // COLORPICKER_H
