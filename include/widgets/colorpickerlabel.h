@@ -12,7 +12,6 @@ class ColorPickerLabel : public QLabel {
 
 public:
 	ColorPickerLabel(const QJsonObject &a_config);
-	
 	void configure(const QJsonObject &a_config);
 	void setSelected(bool s);
 	QString getName();

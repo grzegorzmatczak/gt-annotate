@@ -5,6 +5,7 @@
 #include "spdlog/cfg/env.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 
+
 extern std::shared_ptr<spdlog::logger> Logger;
 extern std::shared_ptr<spdlog::logger> ErrorLogger;
 

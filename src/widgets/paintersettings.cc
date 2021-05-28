@@ -48,4 +48,3 @@ void PainterSettings::changeColor(QColor color, QString label)
 {
     this->m_colorHash[label] = color;
 }
-

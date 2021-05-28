@@ -4,9 +4,9 @@
 #include <QGraphicsView>
 #include <QObject>
 
-//#include "shape.h"
 #include "widgets/structures.h"
 #include "widgets/paintersettings.h"
+
 
 class GraphicsView : public QGraphicsView
 {
@@ -18,7 +18,8 @@ class GraphicsView : public QGraphicsView
 	public:
 		bool drawing();
 		bool editing();
-		 void setPainterSettings(PainterSettings * painterSettings);
+		void setPainterSettings(PainterSettings * painterSettings);
+		void setScale(qreal * scale);
 
 	protected:
 		void wheelEvent(QWheelEvent *) override;
@@ -31,19 +32,19 @@ class GraphicsView : public QGraphicsView
 
 	private:
 		qint32 m_mode;
+		qreal* m_scale;
 
 	private:
 		QPointF m_initPos;
 		QPointF m_actualPos;
 
-	// QWidget interface
 	protected:
 		void mouseMoveEvent(QMouseEvent *event) override;
 		void paintEvent(QPaintEvent *event) override;
+
 	private:
 		QPointF m_point;
 		PainterSettings * m_painterSettings;
-
 
 };
 

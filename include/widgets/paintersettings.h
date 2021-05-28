@@ -22,7 +22,6 @@ class PainterSettings
         int m_penSize{};
         QColor m_color;
         
-
     public:
         QHash<QString, QColor> m_colorHash;
         QHash<QString, int> m_colorInthash;

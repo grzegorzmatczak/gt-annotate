@@ -152,7 +152,4 @@ int ListVector<T>::size()
 	return counter;
 }
 
-
-//template class ListVector<itemOnScene>;
 template class ListVector<int>;
-//template class ListVector<GraphicsRectItem*>;

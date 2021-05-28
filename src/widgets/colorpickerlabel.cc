@@ -46,13 +46,8 @@ static QColor readableColor(const QColor & color)
         Logger->trace("ColorPickerLabel::readableColor()  return 0");
         return QColor(0, 0, 0);
     }
-		
-    
-   
-
     Logger->trace("ColorPickerLabel::readableColor()  return 255");
 	return QColor(255, 255, 255);
-
 }
 
 void ColorPickerLabel::setNewColor(QColor color)
@@ -93,4 +88,3 @@ QString ColorPickerLabel::getName()
 {
 
 }
-

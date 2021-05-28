@@ -16,13 +16,11 @@
 #include "widgets/colorpickerlabel.h"
 
 
-
 class ColorPickerWidget : public QListWidget
 {
 	Q_OBJECT
 	public:
 		explicit ColorPickerWidget(const QJsonObject &a_config);
-
 
 	private:
 		int addColors(QString color);

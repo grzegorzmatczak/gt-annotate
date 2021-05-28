@@ -27,7 +27,6 @@ ColorPickerWidget::ColorPickerWidget(const QJsonObject &a_config)
 	QJsonArray colors = a_config[COLORS_FOREGROUND].toArray() ;
     QJsonArray colorsBack = a_config[COLORS_BACKGROUND].toArray() ;
 
-
     for (int i = 0; i < colorsBack.size(); i++)
     {
         colors.append(colorsBack[i].toObject());
@@ -53,8 +52,4 @@ ColorPickerWidget::ColorPickerWidget(const QJsonObject &a_config)
     }
 }
 
-int ColorPickerWidget::addColors(QString color)
-{
-
-}
-
+int ColorPickerWidget::addColors(QString color){}

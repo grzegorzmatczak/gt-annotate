@@ -69,8 +69,15 @@ void GraphicsView::mousePressEvent(QMouseEvent* e)
 
  void GraphicsView::setPainterSettings(PainterSettings * painterSettings)
  {
-	 m_painterSettings = painterSettings;
+	Logger->trace("GraphicsView::setPainterSettings()");
+	m_painterSettings = painterSettings;
  }
+
+void GraphicsView::setScale(qreal * scale)
+{
+	Logger->trace("GraphicsView::setScale()");
+	m_scale = scale;
+}
 
 void GraphicsView::mouseMoveEvent(QMouseEvent* event)
 {
@@ -85,7 +92,7 @@ void GraphicsView::paintEvent(QPaintEvent *event)
 	QGraphicsView::paintEvent(event);
 
 	int pen_size = m_painterSettings->m_penSize;
-	qreal scale = m_painterSettings->m_scale;
+	qreal scale = *m_scale;
 	QPen pen(m_painterSettings->m_color, 1, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin);
 
 	QPainter painter_id(viewport());
@@ -114,6 +121,14 @@ void GraphicsView::paintEvent(QPaintEvent *event)
 						(m_point.x()) - (pen_size+3)/2 * scale, 
 						(m_point.y()) - (pen_size+3)/2 * scale, 
 						(pen_size+2) * scale, (pen_size+2) * scale);
+		painter_id.drawRect(rectangle);
+	}
+	if (pen_size == 5)
+	{
+		QRectF rectangle(
+						(m_point.x()) - (pen_size+4)/2 * scale, 
+						(m_point.y()) - (pen_size+4)/2 * scale, 
+						(pen_size+3) * scale, (pen_size+3) * scale);
 		painter_id.drawRect(rectangle);
 	}
 	
