@@ -51,11 +51,7 @@ void MainWindow::setupMainWidget()
 }
 
 void MainWindow::createMenus()
-{
-	//m_menuBar = new QMenuBar(this);
-	//m_fileMenu = m_menuBar->addMenu(tr("&File"));
-	//m_fileMenu->addSeparator();
-}
+{}
 
 void MainWindow::setupView(QJsonObject const& a_config)
 {
@@ -67,7 +63,6 @@ void MainWindow::setupLayout()
 {
 	spdlog::trace("MainWindow::MainWindow() setupRightLayout");
 	m_labelList = new QTreeView();
-	//m_labelList->setModel(modelList);
 	m_labelList->setRootIsDecorated(true);
 	m_labelList->setAlternatingRowColors(true);
 	m_labelList->setSortingEnabled(true);
@@ -76,9 +71,6 @@ void MainWindow::setupLayout()
 
 	m_rightLayout = new QVBoxLayout;
 	m_rightLayout->setContentsMargins(0, 0, 0, 0);
-	//m_rightLayout->addWidget(m_buttonContainer);
-	//m_rightLayout->addWidget(m_labelList);
-	//m_rightLayout->addWidget(proxyView);
 	m_rightLayoutContainer = new QWidget;
 	m_rightLayoutContainer->setLayout(m_rightLayout);
 	m_gridLayout = new QGridLayout(this);

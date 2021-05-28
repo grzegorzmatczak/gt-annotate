@@ -14,5 +14,6 @@ class ConfigReader : public QObject
 		ConfigReader();
 		~ConfigReader();
 		bool readConfig(QString configPathWithName, QJsonObject& obj);
+
 };
 #endif //CONFIG_READER_H

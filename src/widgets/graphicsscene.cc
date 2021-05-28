@@ -7,6 +7,7 @@
 #endif
 #include <qmath.h>
 
+
 GraphicsScene::GraphicsScene()
 	: QGraphicsScene()
 	, m_justSelect(false)
@@ -26,17 +27,27 @@ void GraphicsScene::mousePressEvent(QGraphicsSceneMouseEvent* e)
 	Logger->trace("GraphicsScene::mousePressEvent()");
 	if (m_mode == uiMode::Paint && e->buttons() == Qt::LeftButton)
 	{
-		qreal xreal = e->scenePos().x();
+        qreal xreal = e->scenePos().x();
 		qreal yreal = e->scenePos().y();
 		onPaintWhiteBoard(xreal, yreal);
 		emit(updateView());
 	}
 	else if (m_mode == uiMode::SelectROI && e->buttons() == Qt::LeftButton)
 	{
+        qreal xreal = e->scenePos().rx()/10 * 10;
+        qreal yreal = e->scenePos().ry()/10 * 10;
+
 		m_startPoint = e->scenePos(); // Save start pos to save ROI on scene.
-		setSelectionArea(QPainterPath());
-		emit(updateView());
+		//setSelectionArea(QPainterPath());
+		//emit(updateView());
 		m_justSelect = false;
+
+		int x = static_cast<int>(xreal);
+		int y = static_cast<int>(yreal);
+		QPointF point = QPointF(x, y);
+		e->setScenePos(point);
+		QGraphicsScene::mousePressEvent(e);
+
 	}
 	if (m_mode == uiMode::SelectROI && e->buttons() == Qt::MiddleButton)
 	{
@@ -44,12 +55,12 @@ void GraphicsScene::mousePressEvent(QGraphicsSceneMouseEvent* e)
 	}
 	else if (m_mode == uiMode::MoveSelect && e->buttons() == Qt::LeftButton)
 	{
-		qreal xreal = e->scenePos().rx();
-		qreal yreal = e->scenePos().ry();
-		int x = static_cast<int>(xreal);
-		int y = static_cast<int>(yreal);
-		QPointF point = QPointF(x, y);
-		e->setScenePos(point);
+		//qreal xreal = e->scenePos().rx();
+		//qreal yreal = e->scenePos().ry();
+		//int x = static_cast<int>(xreal);
+		//int y = static_cast<int>(yreal);
+		//QPointF point = QPointF(x, y);
+		//e->setScenePos(point);
 		QGraphicsScene::mousePressEvent(e);
 	}
 }
@@ -79,8 +90,10 @@ void GraphicsScene::mouseMoveEvent(QGraphicsSceneMouseEvent* e)
 	}
 	else if (m_mode == uiMode::SelectROI)
 	{
-		QGraphicsScene::mouseMoveEvent(e);
-		emit(updateView());
+		//qreal x = e->scenePos().x();
+		//qreal y = e->scenePos().y();
+		//QGraphicsScene::mouseMoveEvent(e);
+		//emit(updateView());
 	}
 	else if (m_mode == uiMode::MoveSelect)
 	{
@@ -105,6 +118,13 @@ void GraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
 	{
 		QPainterPath tmpPath = selectionArea();
 		setSelectionArea(QPainterPath());
+
+		//qreal xreal = round(e->scenePos().rx()/10*10);
+        //qreal yreal = round(e->scenePos().ry()/10*10);
+		//int x = static_cast<int>(xreal);
+		//int y = static_cast<int>(yreal);
+		//QPointF point = QPointF(x, y);
+		//e->setScenePos(point);
 
 		if (tmpPath.isEmpty())
 		{

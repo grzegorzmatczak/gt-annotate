@@ -8,21 +8,20 @@
 
 class ToolButton : public QToolButton
 {
-  Q_OBJECT
- public:
-  ToolButton();
+	Q_OBJECT
+	public:
+		ToolButton();
 
-  // QWidget interface
- public:
-  QSize minimumSizeHint() const override;
+	public:
+		QSize minimumSizeHint() const override;
 };
 
 class ToolBar : public QToolBar
 {
-  Q_OBJECT
- public:
-  ToolBar();
-  void addAction(QAction *action);
+	Q_OBJECT
+	public:
+		ToolBar();
+		void addAction(QAction *action);
 };
 
 #endif // TOOLBAR_H

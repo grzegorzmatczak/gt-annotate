@@ -32,14 +32,11 @@ class MainWindow : public QWidget
         
 	signals:
 	
-
 	public slots:
 
 	private:
-		
 		QMenu* m_fileMenu;
 		QMenuBar* m_menuBar;
-		
 		QTreeView* m_labelList;
 		QVBoxLayout* m_rightLayout;
 		QWidget* m_rightLayoutContainer;
@@ -48,7 +45,6 @@ class MainWindow : public QWidget
 
 	private:
 		View* m_view;
-
 
 };
 

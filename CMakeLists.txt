@@ -18,11 +18,16 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}")
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/test_images")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+
+
 configure_file(config.json ${CMAKE_BINARY_DIR}/config.json)
 configure_file(gtest/test.json ${CMAKE_BINARY_DIR}/test.json)
 configure_file(config.json ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/config.json)
 configure_file(gtest/test.json ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/test.json)
+
+file(COPY test_images DESTINATION ${CMAKE_BINARY_DIR})
 
 include_directories( "include" )
 
@@ -71,26 +76,34 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 clone_build(spdlog)
 
 set(SRC_MAIN src/main.cc)
+
 set(SRC
   src/mainwindow.cc)
+
 set(HEADERS
   include/mainwindow.h)
 
 set(SRC_UTILS
   src/utils/configreader.cc
   src/utils/includespdlog.cc
+  src/utils/listvector.cc
 )
 set(HEADERS_UTILS
   include/utils/configreader.h
   include/utils/includespdlog.h
+  include/utils/listvector.h
 )
 
 file(GLOB_RECURSE SRC_WIDGETS src/widgets/*.cc)
 file(GLOB_RECURSE HEADERS_WIDGETS include/widgets/*.h)
 
+file(GLOB_RECURSE SRC_IMAGE_PROCESSING src/imageprocessing/*.cc)
+file(GLOB_RECURSE HEADERS_IMAGE_PROCESSING include/imageprocessing/*.h)
+
 add_library(${PROJECT_NAME}_lib STATIC
 	${SRC} ${HEADERS} 
-	${SRC_WIDGETS} ${HEADERS_WIDGETS})
+	${SRC_WIDGETS} ${HEADERS_WIDGETS}
+	${SRC_IMAGE_PROCESSING} ${HEADERS_IMAGE_PROCESSING})
 
 add_library(utils STATIC
 	${SRC_UTILS} ${HEADERS_UTILS})
@@ -105,7 +118,7 @@ file(GLOB_RECURSE SRC_HEADERS_TEST gtest/*.cc gtest/*.h)
 add_executable(g_test ${SRC_HEADERS_TEST})
 
 target_link_libraries(utils ${QT_LIBRARIES} spdlog)
-target_link_libraries(utils Qt5::Core)
+target_link_libraries(utils Qt5::Core Qt5::Widgets)
 
 target_link_libraries(${PROJECT_NAME}_lib ${QT_LIBRARIES} ${OpenCV_LIBS} Threads::Threads utils)
 target_link_libraries(${PROJECT_NAME}_lib Qt5::Core Qt5::Network Qt5::Widgets Qt5::OpenGL)
