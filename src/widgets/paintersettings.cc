@@ -44,3 +44,8 @@ void PainterSettings::configureColors(QJsonObject const& a_config)
     qDebug() << "m_colorHash:" << m_colorHash;
 }
 
+void PainterSettings::changeColor(QColor color, QString label)
+{
+    this->m_colorHash[label] = color;
+}
+
