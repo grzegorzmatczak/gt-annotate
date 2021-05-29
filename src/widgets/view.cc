@@ -1,29 +1,37 @@
 #include "widgets/view.h"
 
-
+constexpr auto WIDTH{ "Width" };
+constexpr auto HEIGHT{ "Height" };
+constexpr auto X{ "x" };
+constexpr auto Y{ "y" };
 
 
 View::View(QJsonObject const& a_config, QFrame* parent)
 	: QFrame(parent)
 	, m_graphicsScene(new GraphicsScene())
 	, m_graphicsView(new GraphicsView())
+	, m_config(a_config)
+	, m_painter(new Painter(a_config, m_graphicsScene, m_graphicsView))
 {
 	Logger->trace("View::View()");
 
-	m_painterSettings.configureColors(a_config);
-	m_graphicsView->setPainterSettings(&m_painterSettings);
-	View::setupCentralWidget(a_config);
+	m_graphicsView->setScale(&m_scale);
+	View::setupCentralWidget();
 
-	Logger->trace("View::View() setupMatrix");
-	setupMatrix();
-	View::onChangePenSize(3);
+	Logger->trace("View::View() m_painter->setupMatrix");
+	View::onSetupMatrix();
+
+	m_painter->onChangePenSize(3);
+
+	View::onSetPaint();
 	View::onLoadDirectory();
 }
 
-void View::setupCentralWidget(QJsonObject const& a_config)
+void View::setupCentralWidget()
 {
 	View::setupGraphicsView();
-	View::setupLeftToolBar(a_config);
+	View::createMenus();
+	View::setupLeftToolBar();
 	View::setupSliders();
 	View::setupProgressBar();
 
@@ -33,13 +41,22 @@ void View::setupCentralWidget(QJsonObject const& a_config)
 	m_vLayout->addWidget(m_zoomSlider, 0, 1);
 	m_vLayout->addWidget(m_graphicsView, 0, 2);
 	m_vLayout->addWidget(m_opacitySlider, 0, 3);
-	//m_topLayout->addWidget(m_progressBar, 0, 4);
+	m_vLayout->addWidget(m_opacitySliderImage, 0, 4);
+	//m_vLayout->addWidget(m_opacitySlider, 0, 3);
 
 	m_hLayout = new QGridLayout;
 	m_hLayout->addLayout(m_vLayout, 0, 0);
-	m_hLayout->addWidget(m_progressBar, 1, 0);
+	m_hLayout->addLayout(m_vLayoutBars, 1, 0);
 	Logger->trace("View::View() setLayout");
 	setLayout(m_hLayout);
+}
+
+void View::createMenus()
+{
+	m_menuBar = new QMenuBar(this);
+	m_fileMenu = m_menuBar->addMenu(tr("&File"));
+	m_fileMenu->addSeparator();
+	m_fileMenu = m_menuBar->addMenu(tr("&Tool"));
 }
 
 void View::setupProgressBar()
@@ -47,6 +64,12 @@ void View::setupProgressBar()
 	m_progressBar = new QProgressBar(this);
 	m_progressBar->setMinimum(0);
 	m_progressBar->setMaximum(100);
+
+	m_statusBar = new QStatusBar(this);
+
+	m_vLayoutBars = new QGridLayout;
+	m_vLayoutBars->addWidget(m_statusBar, 0, 0);
+	m_vLayoutBars->addWidget(m_progressBar, 0, 1);
 }
 
 void View::setupSliders()
@@ -65,8 +88,25 @@ void View::setupSliders()
 	m_opacitySlider->setValue(30);
 	m_opacitySlider->setTickPosition(QSlider::TicksLeft);
 
-	connect(m_zoomSlider, SIGNAL(valueChanged(int)), this, SLOT(setupMatrix()));
+	m_opacitySliderROI = new QSlider;
+	m_opacitySliderROI->setMinimum(0);
+	m_opacitySliderROI->setMaximum(100);
+	m_opacitySliderROI->setValue(30);
+	m_opacitySliderROI->setTickPosition(QSlider::TicksLeft);
+
+	m_opacitySliderImage = new QSlider;
+	m_opacitySliderImage->setMinimum(0);
+	m_opacitySliderImage->setMaximum(100);
+	m_opacitySliderImage->setValue(30);
+	m_opacitySliderImage->setTickPosition(QSlider::TicksLeft);
+
+
+	connect(m_zoomSlider, &QSlider::valueChanged, this, &View::onSetupMatrix );
+	connect(m_painter, &Painter::setupMatrix, this, &View::onSetupMatrix );
+
 	connect(m_opacitySlider, SIGNAL(valueChanged(int)), this, SLOT(setOpacity()));
+	connect(m_opacitySliderROI, SIGNAL(valueChanged(int)), this, SLOT(setOpacityROI()));
+	connect(m_opacitySliderImage, SIGNAL(valueChanged(int)), this, SLOT(setOpacityImage()));
 }
 
 void View::setupGraphicsView()
@@ -79,7 +119,7 @@ void View::setupGraphicsView()
 	m_graphicsView->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 	m_graphicsView->setScene(m_graphicsScene);
 
-	connect(m_graphicsScene, &GraphicsScene::paintWhiteBoard, this, &View::onPaintWhiteBoard);
+	connect(m_graphicsScene, &GraphicsScene::paintWhiteBoard, m_painter, &Painter::onPaintWhiteBoard);
 	connect(m_graphicsView, &GraphicsView::zoomIn, this, &View::onZoomIn);
 	connect(m_graphicsView, &GraphicsView::zoomOut, this, &View::onZoomOut);
 }
@@ -103,27 +143,38 @@ void View::creteAction()
 	connect(action_ROI, &QAction::triggered, this, &View::onSetROI);
 
 	action_loadDirectory = new QAction(tr("&Load Directory"), this);
-	//action_loadDirectory->setShortcuts(QKeySequence::New);
 	action_loadDirectory->setStatusTip(tr("Load Directory"));
 	
 	connect(action_loadDirectory, &QAction::triggered, this, &View::onLoadDirectory);
+
+	action_saveWhitePixmap = new QAction(tr("&Save objects"), this);
+	connect(action_saveWhitePixmap, &QAction::triggered, m_painter, &Painter::onSaveWhiteBoard);
 	View::onSetPaint();
 }
 
-void View::setupLeftToolBar(QJsonObject const& a_config) 
+void View::setupLeftToolBar() 
 {
 	View::creteAction();
 	Logger->trace("View::setupLeftToolBar()");
 	m_leftToolBar = new ToolBar();
 	m_leftToolBar->setWindowFlag(Qt::FramelessWindowHint);
 	m_leftToolBar->setOrientation(Qt::Vertical);
-	m_leftToolBar->addSeparator();
-	m_colorPicker = new ColorPicker(a_config);
+	m_leftToolBar->addWidget(m_menuBar);
+
+	m_colorPicker = new ColorPicker(m_config);
+	connect(m_colorPicker, &ColorPicker::changeColor, m_painter, &Painter::onChangeColor);
 	m_leftToolBar->addWidget(m_colorPicker);
-	connect(m_colorPicker, &ColorPicker::changeColor, this, &View::onChangeColor);
+	m_leftToolBar->addSeparator();
+	
+	qDebug()<< "ColorPickerWidget m_config:" << m_config;
+	m_colorPickerWidget = new ColorPickerWidget(m_config);
+	m_leftToolBar->addWidget(m_colorPickerWidget);
+	connect(m_colorPickerWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(onChangeColor2(QListWidgetItem*)));
+	connect(m_colorPickerWidget, SIGNAL(currentItemChanged(QListWidgetItem*, QListWidgetItem*)), this, SLOT(onChangeLabel(QListWidgetItem*, QListWidgetItem*)));
+
 	m_penSizePicker = new PenSizePicker();
 	m_leftToolBar->addWidget(m_penSizePicker);
-	connect(m_penSizePicker, &PenSizePicker::changePenSize, this, &View::onChangePenSize);
+	connect(m_penSizePicker, &PenSizePicker::changePenSize, m_painter, &Painter::onChangePenSize);
 
 	m_leftToolBar->addSeparator();
 	
@@ -131,7 +182,7 @@ void View::setupLeftToolBar(QJsonObject const& a_config)
 	m_leftToolBar->addAction(action_move);
 	m_leftToolBar->addAction(action_ROI);
 	m_leftToolBar->addSeparator();
-	m_leftToolBar->addAction(action_loadDirectory);
+	m_leftToolBar->addAction(action_saveWhitePixmap);
 	m_leftToolBar->addSeparator();
 	m_loadButton = new QToolButton;
 	m_loadButton->setText(tr("Load Directory"));
@@ -146,6 +197,97 @@ void View::setupLeftToolBar(QJsonObject const& a_config)
 	connect(m_loadButton, SIGNAL(clicked()), this, SLOT(onLoadDirectory()));
 }
 
+void View::setOpacity()
+{
+	Logger->trace("View::setOpacity()");
+	//TODO:
+	// m_scaleOpacity not needed as class member?
+	m_scaleOpacity = (m_opacitySlider->value()) / qreal(100);
+	m_painter->setOpacity(m_scaleOpacity);
+}
+
+void View::setOpacityROI()
+{
+	Logger->trace("View::setOpacityROI()");
+	m_scaleOpacityROI = (m_opacitySliderROI->value()) / qreal(100);
+	m_painter->setOpacityROI(m_scaleOpacityROI);
+}
+
+void View::setOpacityImage()
+{
+	Logger->trace("View::setOpacityImage()");
+	m_scaleOpacityImage = (m_opacitySliderImage->value()) / qreal(100);
+	m_painter->setOpacityImage(m_scaleOpacityImage);
+}
+
+void View::onSetupMatrix()
+{
+	Logger->trace("View::onSetupMatrix()");
+	m_scale = qPow(qreal(2), (m_zoomSlider->value() - 250) / qreal(50));
+	Logger->trace("m_scale:{}", m_scale);
+	QMatrix matrix;
+	matrix.scale(m_scale, m_scale);
+	m_graphicsView->setMatrix(matrix);
+}
+
+void View::onChangeColor2(QListWidgetItem* item) 
+{
+	Logger->trace("View::onChangeColor2()");
+	ColorPickerLabel * label = static_cast<ColorPickerLabel*>(m_colorPickerWidget->itemWidget(item));
+	Logger->trace("View::onChangeColor2() label.m_color:{}",label->m_color.name().toStdString());
+
+	QString oldColor = label->m_name;
+	QColor color = QColorDialog::getColor(label->m_color, this);
+
+	if (color.isValid())
+	{
+		if(m_painter->onChangeOldColor(oldColor, color) );
+		{
+			Logger->trace("onChangeOldColor true");
+			label->setNewColor(color);
+		}
+	}
+}
+
+void View::onChangeLabel(QListWidgetItem* current, QListWidgetItem* previous)
+{
+	Logger->trace("View::onChangeLabel()");
+
+	if (current == NULL && previous == NULL)
+	{
+		Logger->error("View::onChangeLabel() return");
+		return;
+	}
+
+	ColorPickerLabel * label;
+	if (previous == NULL)
+	{
+		for (int i = 0; i < m_colorPickerWidget->count(); i++)
+		{
+			label = static_cast<ColorPickerLabel*>(m_colorPickerWidget->itemWidget(m_colorPickerWidget->item(i)));
+			label->setSelected(false);
+		}
+	} 
+	else 
+	{
+		label = static_cast<ColorPickerLabel*>(m_colorPickerWidget->itemWidget(previous));
+		label->setSelected(false);
+	}
+	Logger->trace("View::onChangeLabel() next");
+	if (current == NULL) {current = previous;}
+	Logger->trace("View::onChangeLabel() label");
+	label = static_cast<ColorPickerLabel*>(m_colorPickerWidget->itemWidget(current));
+	label->setSelected(true);
+	qDebug() << "View::onChangeLabel() change color to :" << label->m_color;
+	m_painter->onChangeColor(label->m_color);
+	QString str;
+	QString key = label->m_name;
+	QTextStream sstr(&str);
+	
+	sstr <<"label:" <<  label->m_name << " category: color:[" << label->m_color.name() << "]" ;
+	m_statusBar->showMessage(str);
+}
+
 void View::onLoadDirectory()
 {
 	m_targetDirectoryPath = QFileDialog::getExistingDirectory(
@@ -155,50 +297,13 @@ void View::onLoadDirectory()
 		return;
 	}
 	m_targetDirectoryPath += "/";
-	View::loadImage("/home/gm/Obrazy/temp.png");
-	View::renderColorsFromImage("/home/gm/Obrazy/temp2.png");
+	m_painter->loadImage("test_images/test1.png");
+	//View::renderColorsFromImage("test_images/test1.png");
 }
 
 QGraphicsView* View::view() const
 {
 	return static_cast<QGraphicsView*>(m_graphicsView);
-}
-
-void View::setupMatrix()
-{
-	Logger->trace("View::setupMatrix()");
-	m_painterSettings.m_scale = qPow(qreal(2), (m_zoomSlider->value() - 250) / qreal(50));
-	Logger->trace("m_painterSettings.m_scale:{}", m_painterSettings.m_scale);
-	QMatrix matrix;
-	matrix.scale(m_painterSettings.m_scale, m_painterSettings.m_scale);
-	m_graphicsView->setMatrix(matrix);
-}
-
-void View::setOpacity()
-{
-	Logger->trace("View::setOpacity()");
-	m_scaleOpacity = (m_opacitySlider->value()) / qreal(100);
-	m_whitePixmap->setOpacity(m_scaleOpacity);
-}
-
-void View::onPaintWhiteBoard(qint32 x, qint32 y)
-{
-	if (m_painterSettings.m_penSize == 1)
-	{
-		m_paintImage.setPixelColor(x, y, m_painterSettings.m_color);
-	}
-	else if (m_painterSettings.m_penSize > 1 && m_painterSettings.m_penSize < 20)
-	{
-		qint32 it = m_painterSettings.m_penSize - 1;
-		for (int zx = -it; zx <= it; zx++)
-		{
-			for (int zy = -it; zy <= it; zy++)
-			{
-				m_paintImage.setPixelColor(x + zx, y + zy, m_painterSettings.m_color);
-			}
-		}
-	}
-	m_whitePixmap->setPixmap(QPixmap::fromImage(m_paintImage));
 }
 
 void View::onZoomIn(qint32 delta)
@@ -209,154 +314,6 @@ void View::onZoomIn(qint32 delta)
 void View::onZoomOut(qint32 delta)
 {
 	m_zoomSlider->setValue(m_zoomSlider->value() - delta);
-}
-
-void View::loadImage(QString imageName)
-{
-	Logger->debug("View::loadImage()");
-	QPixmap test;
-	test.load(imageName);
-	addImageToScene(test);
-
-}
-
-void View::addImageToScene(QPixmap image)
-{
-	Logger->trace("View::addImageToScene()");
-	onResetScene();
-	//m_pixmap = static_cast<GraphicsPixmapItem*>(m_graphicsScene->addPixmap(image));
-	m_pixmap = static_cast<QGraphicsPixmapItem*>(m_graphicsScene->addPixmap(image));
-	m_image = image.toImage();
-	m_paintImage = image.toImage();
-
-	for (int y = 0; y < m_paintImage.height(); y++)
-	{
-		for (int x = 0; x < m_paintImage.width(); x++)
-		{
-			m_paintImage.setPixelColor(x, y, QColor{ 255, 255, 0, 127 });
-		}
-	}
-	QPixmap whiteBoardPixmap = QPixmap::fromImage(m_paintImage);
-	//m_whitePixmap = static_cast<GraphicsPixmapItem*>(m_graphicsScene->addPixmap(whiteBoardPixmap));
-	m_whitePixmap = static_cast<QGraphicsPixmapItem*>(m_graphicsScene->addPixmap(whiteBoardPixmap));
-	m_whitePixmap->update();
-
-	m_pixmap->setEnabled(true);
-	m_pixmap->setVisible(true);
-	m_pixmap->setOpacity(1.80);
-	m_pixmap->setAcceptHoverEvents(true);
-	m_pixmap->setAcceptTouchEvents(true);
-	m_pixmap->setZValue(-2);
-	m_pixmap->update();
-
-	QPen pen;
-
-	pen.setStyle(Qt::SolidLine);
-	pen.setWidth(1);
-	pen.setBrush(Qt::green);
-	pen.setCapStyle(Qt::SquareCap);
-	pen.setJoinStyle(Qt::MiterJoin);
-	m_graphicsScene->addRect(1,1,2,2,pen);
-	m_graphicsScene->addRect(5.5,5.5,5,5,pen);
-	m_graphicsScene->addRect(11.5,11.5,5,5,pen);
-
-	QRectF tempRectToText = QRectF(250.5, 250.5, 5, 5);
-	QGraphicsRectItem * item = new QGraphicsRectItem();
-	item->setRect(tempRectToText);
-	item->setPen(pen);
-	item->setEnabled(true);
-	item->setVisible(true);
-	item->setFlags( QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsFocusable);
-	m_graphicsScene->addItem(item);
-
-	View::setOpacity();
-	View::resetView();
-}
-
-void View::onResetScene()
-{
-	qDebug() << "View::onResetScene:";
-	emit(resetScene());
-	View::resetView();
-}
-
-void View::resetView()
-{
-	Logger->trace("View::resetView()");
-	setupMatrix();
-}
-
-
-void View::renderColorsFromImage(QString pathToImage)
-{
-	Logger->trace("View::renderColorsFromImage() pathToImage:{}", pathToImage.toStdString());
-	cv::Mat image = cv::imread(pathToImage.toStdString());
-	
-	Logger->trace("View::renderColorsFromImage() image ({}x{}x{})", image.cols, image.rows, image.channels());
-	if(image.empty())
-	{
-		Logger->error("View::renderColorsFromImage() image cant be loaded:{}", pathToImage.toStdString());
-		return;
-	}
-	else
-	{
-		cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
-
-		for (qint32 color = 0; color < m_painterSettings.m_colors.size(); color++)
-		{
-			/*if (m_painterSettings.m_colors[color] == BLACK)
-			{
-				continue;
-			}*/
-			for (int i = 0; i < image.cols; i++)
-			{
-				for (int j = 0; j < image.rows; j++)
-				{
-					if ( m_painterSettings.m_colorInthash[m_painterSettings.m_colors[color]] == image.at<unsigned char>(j, i))
-					{
-						onPaintColors(i, j, m_painterSettings.m_colorHash[m_painterSettings.m_colors[color]]);
-					}
-				}
-
-			}
-		}
-		/*
-		for (int i = 0; i < image.cols; i++)
-		{
-			for (int j = 0; j < image.rows; j++)
-			{
-				if ((  image.at<unsigned char>(j, i) < 255) && (image.at<unsigned char>(j, i)  > 0) )
-				{
-					onPaintColors(i, j, m_colorShadow);
-				}
-			}
-
-		}*/
-	}
-	View::onPaintColorsFinish();
-}
-
-void View::onPaintColors(qint32 x, qint32 y, QColor color)
-{
-	m_paintImage.setPixelColor(x, y, color);
-}
-
-void View::onPaintColorsFinish()
-{
-	Logger->trace("View::onPaintColorsFinish()");
-	m_whitePixmap->setPixmap(QPixmap::fromImage(m_paintImage));
-}
-
-void View::onChangeColor(QColor color)
-{
-	qDebug() << "View::onChangeColor:" << color;
-	m_painterSettings.m_color = color;
-}
-
-void View::onChangePenSize(qint32 size)
-{
-	qDebug() << "View::onChangePenSize:" << size;
-	m_painterSettings.m_penSize = size;
 }
 
 void View::onSetPaint()
