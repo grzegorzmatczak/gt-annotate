@@ -24,6 +24,10 @@ class ColorPickerWidget : public QListWidget
 
 	private:
 		int addColors(QString color);
+
+	public:
+		QSize minimumSizeHint() const override;
+		QSize sizeHint() const override;
 		
 };
 

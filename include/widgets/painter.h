@@ -42,7 +42,7 @@ class Painter : public QObject
 		void onChangeColor(QColor color);
 		bool onChangeOldColor(QString name, QColor color);
 		void onChangePenSize(qint32 size);
-		void loadImage(QString imageName);
+		void onLoadImage(QString imageName);
 		void onSaveWhiteBoard();
 
     private:
@@ -50,15 +50,16 @@ class Painter : public QObject
         void renderColorsFromImage(QString pathToImage);
         void onPaintColorsFinish();
         void onPaintColors(qint32 x, qint32 y, QColor color);
-		void DeleteRois();
+		void deleteRois();
+		void clearScene();
 
 	private:
 		QImage m_paintImage;
 		QImage m_gridImage;
 		QImage m_image;
-		QGraphicsPixmapItem *m_paintPixmap;
-		QGraphicsPixmapItem *m_pixmap;
-		QGraphicsPixmapItem *m_gridPixmap;
+		GraphicsPixmapItem *m_paintPixmap;
+		GraphicsPixmapItem *m_pixmap;
+		GraphicsPixmapItem *m_gridPixmap;
 
 	private:
 		Contour m_contour;	

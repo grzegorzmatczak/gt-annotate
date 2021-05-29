@@ -11,20 +11,12 @@ Painter::Painter(QJsonObject const& config, GraphicsScene *graphicsScene, Graphi
 	, m_graphicsScene(graphicsScene)
 	, m_graphicsView(graphicsView)
 {
-
 	m_roiType = 4;
 	m_whiteBoardType = 5;
 	m_ImageType = 6;
-
     m_painterSettings.configureColors(m_config);
-
 	m_graphicsView->setPainterSettings(&m_painterSettings);
 }
-
-
-
-
-
 
 void Painter::onPaintWhiteBoard(qint32 x, qint32 y)
 {
@@ -46,13 +38,28 @@ void Painter::onPaintWhiteBoard(qint32 x, qint32 y)
 	m_paintPixmap->setPixmap(QPixmap::fromImage(m_paintImage));
 }
 
-
-void Painter::loadImage(QString imageName)
+void Painter::onLoadImage(QString imageName)
 {
-	Logger->debug("Painter::loadImage()");
+	Painter::clearScene();
+	Logger->debug("Painter::onLoadImage()");
 	QPixmap test;
 	test.load(imageName);
 	addImageToScene(test);
+}
+
+void Painter::clearScene()
+{
+	QList<QGraphicsItem*> items = m_graphicsScene->items(Qt::DescendingOrder);
+	Logger->trace("Painter::onItemChanged() size:{}", items.size());
+	for (int i = 0; i < items.size(); i++)
+	{
+		if (items[i]->type() == m_ImageType || items[i]->type() == m_whiteBoardType)
+		{
+			GraphicsRectItem* cast = dynamic_cast<GraphicsRectItem*>(items[i]);
+			m_graphicsScene->removeItem(cast);
+			delete cast;
+		}
+	}
 }
 
 static cv::Mat qimage_to_mat_ref(QImage &img, int format)
@@ -60,7 +67,7 @@ static cv::Mat qimage_to_mat_ref(QImage &img, int format)
     return cv::Mat(img.height(), img.width(), format, img.bits(), img.bytesPerLine());
 }
 
-void Painter::DeleteRois()
+void Painter::deleteRois()
 {
 	QList<QGraphicsItem*> items = m_graphicsScene->items(Qt::DescendingOrder);
 	Logger->trace("Painter::onItemChanged() size:{}", items.size());
@@ -77,7 +84,7 @@ void Painter::DeleteRois()
 
 void Painter::onSaveWhiteBoard()
 {
-	Painter::DeleteRois();
+	Painter::deleteRois();
 
 	Logger->trace("Painter::onSaveWhiteBoard()");
 	for (int color = 0; color < m_painterSettings.m_colors.size(); color++)
@@ -117,22 +124,18 @@ void Painter::onSaveWhiteBoard()
 	}
 }
 
-
-
 void Painter::addImageToScene(QPixmap image)
 {
 	Logger->trace("Painter::addImageToScene()");
 	emit(setupMatrix());
-	m_pixmap = static_cast<QGraphicsPixmapItem*>(m_graphicsScene->addPixmap(image));
+	m_pixmap = static_cast<GraphicsPixmapItem*>(m_graphicsScene->addPixmap(image));
 	m_pixmap->setEnabled(true);
 	m_pixmap->setVisible(true);
-	m_pixmap->setOpacity(0.5);
+	m_pixmap->setOpacity(1.0);
 	m_pixmap->setAcceptHoverEvents(true);
 	m_pixmap->setAcceptTouchEvents(true);
 	m_pixmap->setZValue(-2);
 	m_pixmap->update();
-
-
 
 	m_image = image.toImage();
 	m_paintImage = image.toImage();
@@ -146,7 +149,7 @@ void Painter::addImageToScene(QPixmap image)
 	}
 	
 	QPixmap whiteBoardPixmap = QPixmap::fromImage(m_paintImage);
-	m_paintPixmap = static_cast<QGraphicsPixmapItem*>(m_graphicsScene->addPixmap(whiteBoardPixmap));
+	m_paintPixmap = static_cast<GraphicsPixmapItem*>(m_graphicsScene->addPixmap(whiteBoardPixmap));
 	m_paintPixmap->setEnabled(true);
 	m_paintPixmap->setVisible(true);
 	m_paintPixmap->setOpacity(0.5);
@@ -154,29 +157,7 @@ void Painter::addImageToScene(QPixmap image)
 	m_paintPixmap->setAcceptTouchEvents(true);
 	m_paintPixmap->setZValue(-1);
 	m_paintPixmap->update();
-
-	
-/*
-	QPen pen;
-	pen.setStyle(Qt::SolidLine);
-	pen.setWidth(1);
-	pen.setBrush(Qt::green);
-	pen.setCapStyle(Qt::SquareCap);
-	pen.setJoinStyle(Qt::MiterJoin);
-
-	QRectF tempRectToText = QRectF(250.5, 250.5, 5, 5);
-	QGraphicsRectItem * item = new QGraphicsRectItem();
-	item->setRect(tempRectToText);
-	item->setPen(pen);
-	item->setEnabled(true);
-	item->setVisible(true);
-	item->setFlags( QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsFocusable);
-	m_graphicsScene->addItem(item);
-*/
-	//Painter::setOpacity();
-	//Painter::resetView();
 }
-
 
 void Painter::renderColorsFromImage(QString pathToImage)
 {
@@ -203,7 +184,6 @@ void Painter::renderColorsFromImage(QString pathToImage)
 						onPaintColors(i, j, m_painterSettings.m_colorHash[m_painterSettings.m_colors[color]]);
 					}
 				}
-
 			}
 		}
 	}
@@ -230,7 +210,6 @@ void Painter::onChangeColor(QColor color)
 bool Painter::onChangeOldColor(QString name, QColor color)
 {
 	qDebug() << "Painter::onChangeOldColor:" << color;
-
 	// Check if color exist:
 	for (qint32 i = 0; i < m_painterSettings.m_colors.size(); i++)
 	{

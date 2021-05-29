@@ -26,7 +26,7 @@ GraphicsRectItem::GraphicsRectItem(QColor &color, QString text, QRectF rect, int
 
 int GraphicsRectItem::type() const
 {
-  return m_type;
+	return m_type;
 }
 
 void GraphicsRectItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *item, QWidget *widget)
