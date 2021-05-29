@@ -38,12 +38,28 @@ void Painter::onPaintWhiteBoard(qint32 x, qint32 y)
 	m_paintPixmap->setPixmap(QPixmap::fromImage(m_paintImage));
 }
 
-void Painter::loadImage(QString imageName)
+void Painter::onLoadImage(QString imageName)
 {
-	Logger->debug("Painter::loadImage()");
+	Painter::clearScene();
+	Logger->debug("Painter::onLoadImage()");
 	QPixmap test;
 	test.load(imageName);
 	addImageToScene(test);
+}
+
+void Painter::clearScene()
+{
+	QList<QGraphicsItem*> items = m_graphicsScene->items(Qt::DescendingOrder);
+	Logger->trace("Painter::onItemChanged() size:{}", items.size());
+	for (int i = 0; i < items.size(); i++)
+	{
+		if (items[i]->type() == m_ImageType || items[i]->type() == m_whiteBoardType)
+		{
+			GraphicsRectItem* cast = dynamic_cast<GraphicsRectItem*>(items[i]);
+			m_graphicsScene->removeItem(cast);
+			delete cast;
+		}
+	}
 }
 
 static cv::Mat qimage_to_mat_ref(QImage &img, int format)
@@ -51,7 +67,7 @@ static cv::Mat qimage_to_mat_ref(QImage &img, int format)
     return cv::Mat(img.height(), img.width(), format, img.bits(), img.bytesPerLine());
 }
 
-void Painter::DeleteRois()
+void Painter::deleteRois()
 {
 	QList<QGraphicsItem*> items = m_graphicsScene->items(Qt::DescendingOrder);
 	Logger->trace("Painter::onItemChanged() size:{}", items.size());
@@ -68,7 +84,7 @@ void Painter::DeleteRois()
 
 void Painter::onSaveWhiteBoard()
 {
-	Painter::DeleteRois();
+	Painter::deleteRois();
 
 	Logger->trace("Painter::onSaveWhiteBoard()");
 	for (int color = 0; color < m_painterSettings.m_colors.size(); color++)
@@ -112,10 +128,10 @@ void Painter::addImageToScene(QPixmap image)
 {
 	Logger->trace("Painter::addImageToScene()");
 	emit(setupMatrix());
-	m_pixmap = static_cast<QGraphicsPixmapItem*>(m_graphicsScene->addPixmap(image));
+	m_pixmap = static_cast<GraphicsPixmapItem*>(m_graphicsScene->addPixmap(image));
 	m_pixmap->setEnabled(true);
 	m_pixmap->setVisible(true);
-	m_pixmap->setOpacity(0.5);
+	m_pixmap->setOpacity(1.0);
 	m_pixmap->setAcceptHoverEvents(true);
 	m_pixmap->setAcceptTouchEvents(true);
 	m_pixmap->setZValue(-2);
@@ -133,7 +149,7 @@ void Painter::addImageToScene(QPixmap image)
 	}
 	
 	QPixmap whiteBoardPixmap = QPixmap::fromImage(m_paintImage);
-	m_paintPixmap = static_cast<QGraphicsPixmapItem*>(m_graphicsScene->addPixmap(whiteBoardPixmap));
+	m_paintPixmap = static_cast<GraphicsPixmapItem*>(m_graphicsScene->addPixmap(whiteBoardPixmap));
 	m_paintPixmap->setEnabled(true);
 	m_paintPixmap->setVisible(true);
 	m_paintPixmap->setOpacity(0.5);

@@ -1,11 +1,13 @@
 #include "widgets/toolbar.h"
 
+
 ToolButton::ToolButton() {}
 
 QSize ToolButton::minimumSizeHint() const
 {
-  return QSize(80, 10);
+  return QSize(150, 10);
 }
+
 
 ToolBar::ToolBar() {}
 

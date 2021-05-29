@@ -25,11 +25,11 @@ ColorPickerWidget::ColorPickerWidget(const QJsonObject &a_config)
     this->clear();
     int counter = 0;
 	QJsonArray colors = a_config[COLORS_FOREGROUND].toArray() ;
-    QJsonArray colorsBack = a_config[COLORS_BACKGROUND].toArray() ;
+    QJsonArray colorsBackground = a_config[COLORS_BACKGROUND].toArray() ;
 
-    for (int i = 0; i < colorsBack.size(); i++)
+    for (int i = 0; i < colorsBackground.size(); i++)
     {
-        colors.append(colorsBack[i].toObject());
+        colors.append(colorsBackground[i].toObject());
     }
 
     qDebug()<< "colors:" << colors;
@@ -53,3 +53,13 @@ ColorPickerWidget::ColorPickerWidget(const QJsonObject &a_config)
 }
 
 int ColorPickerWidget::addColors(QString color){}
+
+QSize ColorPickerWidget::minimumSizeHint() const
+{
+  return QSize(150, 200);
+}
+
+QSize ColorPickerWidget::sizeHint() const
+{
+  return QSize(150, 200);
+}
