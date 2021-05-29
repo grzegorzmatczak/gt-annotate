@@ -3,13 +3,18 @@
 
 #include <QtWidgets>
 #include <QHash>
-#include "includespdlog.h"
+#include "utils/includespdlog.h"
+#include "utils/listvector.h"
 #include "widgets/graphicsscene.h"
 #include "widgets/graphicsview.h"
 #include "widgets/colorpicker.h"
 #include "widgets/pensizepicker.h"
 #include "widgets/toolbar.h"
 #include "widgets/paintersettings.h"
+#include "widgets/colorpickerwidget.h"
+#include "widgets/graphicsrectitem.h"
+#include "widgets/painter.h"
+#include "imageprocessing/contour.h"
 
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
@@ -24,15 +29,14 @@ class View : public QFrame
 	public:
 		explicit View(QJsonObject const &a_config, QFrame *parent = nullptr);
 		QGraphicsView *view() const;
-
         void configure(QJsonObject const& a_config, QHash<QString, int>& m_colorInthash, QHash<QString, QColor>& m_colorHash);
 
 	public slots:
-		void onPaintWhiteBoard(qint32 x, qint32 y);
+		void onSetupMatrix();
 		void onZoomIn(qint32 delta);
   		void onZoomOut(qint32 delta);
-		void onChangeColor(QColor color);
-		void onChangePenSize(qint32 size);	
+		void onChangeColor2(QListWidgetItem* item);
+		void onChangeLabel(QListWidgetItem* current, QListWidgetItem* previous);
 
 	signals:
 		void setModePaint();
@@ -41,28 +45,23 @@ class View : public QFrame
 		void resetScene();
 
 	private slots:
-		void setupMatrix();
-		void setOpacity();
 		void onSetPaint();
 		void onSetMove();
 		void onSetROI();
 		void onLoadDirectory();
+		void setOpacity();
+		void setOpacityROI();
+		void setOpacityImage();
 
 	private:
-		void addImageToScene(QPixmap image);
-		void onResetScene();
-		void resetView();
 		void setupProgressBar();
 		void setupGraphicsView();
 		void setupSliders();
-		void setupLeftToolBar(QJsonObject const& a_config);
-		void setupCentralWidget(QJsonObject const& a_config);
-		void loadImage(QString imageName);
-        void renderColorsFromImage(QString pathToImage);
-        void onPaintColorsFinish();
-        void onPaintColors(qint32 x, qint32 y, QColor color);
+		void setupLeftToolBar();
+		void setupCentralWidget();
 		void creteAction();
-		
+		void onSaveWhiteBoard();
+		void createMenus();
 
 	private:
 		GraphicsView *m_graphicsView;
@@ -70,30 +69,32 @@ class View : public QFrame
 		QProgressBar* m_progressBar;
 		QGridLayout *m_vLayout;
 		QGridLayout *m_hLayout;
+		QGridLayout* m_vLayoutBars;
 		QSlider *m_opacitySlider;
+		QSlider *m_opacitySliderROI;
+		QSlider *m_opacitySliderImage;
 		QSlider *m_zoomSlider;
 		ToolBar* m_leftToolBar;
 		QHBoxLayout* m_buttonLayout;
 		QToolButton* m_loadButton;
 		QToolButton* m_saveGTbutton;
 		QWidget* m_buttonContainer;
+		QStatusBar* m_statusBar;
+		QMenu* m_fileMenu;
+		QMenuBar* m_menuBar;
 
 	private:
 		ColorPicker* m_colorPicker;
+		ColorPickerWidget* m_colorPickerWidget;
 		QTextBrowser* logViewer;
 		PenSizePicker* m_penSizePicker;
 
 	private:
-        PainterSettings m_painterSettings;
-		qreal m_scaleOpacity;
+		QJsonObject m_config;
 
 	private:
-		QImage m_paintImage;
-		QImage m_gridImage;
-		QImage m_image;
-		QGraphicsPixmapItem *m_whitePixmap;
-		QGraphicsPixmapItem *m_pixmap;
-		QGraphicsPixmapItem *m_gridPixmap;
+		Painter* m_painter;
+
 	private:
         QString m_targetDirectoryPath;
 
@@ -102,6 +103,14 @@ class View : public QFrame
 		QAction* action_move;
 		QAction* action_ROI;
 		QAction* action_loadDirectory;
+		QAction* action_saveWhitePixmap;
+
+	private:
+		qreal m_scaleOpacity;
+		qreal m_scaleOpacityROI;
+		qreal m_scaleOpacityImage;
+
+		qreal m_scale;
 
 };
  
