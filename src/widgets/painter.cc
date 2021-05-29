@@ -11,20 +11,12 @@ Painter::Painter(QJsonObject const& config, GraphicsScene *graphicsScene, Graphi
 	, m_graphicsScene(graphicsScene)
 	, m_graphicsView(graphicsView)
 {
-
 	m_roiType = 4;
 	m_whiteBoardType = 5;
 	m_ImageType = 6;
-
     m_painterSettings.configureColors(m_config);
-
 	m_graphicsView->setPainterSettings(&m_painterSettings);
 }
-
-
-
-
-
 
 void Painter::onPaintWhiteBoard(qint32 x, qint32 y)
 {
@@ -45,7 +37,6 @@ void Painter::onPaintWhiteBoard(qint32 x, qint32 y)
 	}
 	m_paintPixmap->setPixmap(QPixmap::fromImage(m_paintImage));
 }
-
 
 void Painter::loadImage(QString imageName)
 {
@@ -117,8 +108,6 @@ void Painter::onSaveWhiteBoard()
 	}
 }
 
-
-
 void Painter::addImageToScene(QPixmap image)
 {
 	Logger->trace("Painter::addImageToScene()");
@@ -131,8 +120,6 @@ void Painter::addImageToScene(QPixmap image)
 	m_pixmap->setAcceptTouchEvents(true);
 	m_pixmap->setZValue(-2);
 	m_pixmap->update();
-
-
 
 	m_image = image.toImage();
 	m_paintImage = image.toImage();
@@ -154,29 +141,7 @@ void Painter::addImageToScene(QPixmap image)
 	m_paintPixmap->setAcceptTouchEvents(true);
 	m_paintPixmap->setZValue(-1);
 	m_paintPixmap->update();
-
-	
-/*
-	QPen pen;
-	pen.setStyle(Qt::SolidLine);
-	pen.setWidth(1);
-	pen.setBrush(Qt::green);
-	pen.setCapStyle(Qt::SquareCap);
-	pen.setJoinStyle(Qt::MiterJoin);
-
-	QRectF tempRectToText = QRectF(250.5, 250.5, 5, 5);
-	QGraphicsRectItem * item = new QGraphicsRectItem();
-	item->setRect(tempRectToText);
-	item->setPen(pen);
-	item->setEnabled(true);
-	item->setVisible(true);
-	item->setFlags( QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemIsMovable | QGraphicsItem::ItemIsFocusable);
-	m_graphicsScene->addItem(item);
-*/
-	//Painter::setOpacity();
-	//Painter::resetView();
 }
-
 
 void Painter::renderColorsFromImage(QString pathToImage)
 {
@@ -203,7 +168,6 @@ void Painter::renderColorsFromImage(QString pathToImage)
 						onPaintColors(i, j, m_painterSettings.m_colorHash[m_painterSettings.m_colors[color]]);
 					}
 				}
-
 			}
 		}
 	}
@@ -230,7 +194,6 @@ void Painter::onChangeColor(QColor color)
 bool Painter::onChangeOldColor(QString name, QColor color)
 {
 	qDebug() << "Painter::onChangeOldColor:" << color;
-
 	// Check if color exist:
 	for (qint32 i = 0; i < m_painterSettings.m_colors.size(); i++)
 	{
