@@ -3,6 +3,12 @@
 	{
 		"LogLevel": 0
 	},
+	"Dataset": 
+	{
+		"GtDirectory": "/home/gm/repo/datasets/test1/gt",
+		"ImageDirectory": "/home/gm/repo/datasets/test1/images",
+		"JsonDirectory": "/home/gm/repo/datasets/test1/gt_json"
+	},
 	"ColorsForeground":
 	[
 		{"Name":"bird","GrayColor":0,"R":255,"G":255,"B":0,"A":100},
