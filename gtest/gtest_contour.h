@@ -14,7 +14,7 @@ namespace gtest_contour
 	{
 		public:
 			void testCannyImage(std::string str1, std::string str2);
-			void testFindContours(std::string str, QJsonArray array);
+			void testFindContours(std::string str, QJsonArray array, QString name);
 			void testCrateRois(std::string str, QJsonArray array);
 		protected:
 			GTest_contour(){}
