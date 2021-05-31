@@ -1019,3 +1019,14 @@ build/test_images/TEST3/2_canny_output.png
 build/test_images/TEST3/2_CrateRois.png
 build/test_images/TEST3/3_canny_output.png
 build/test_images/TEST3/3_CrateRois.png
+build/4_CrateRois.png
+build/background_canny_output.png
+build/bird_canny_output.png
+build/dron_canny_output.png
+build/person_canny_output.png
+build/UAV_canny_output.png
+build/.cmake/api/v1/reply/codemodel-v2-2ed0e7710c6dbfd872f2.json
+build/.cmake/api/v1/reply/index-2021-05-31T18-37-22-0600.json
+build/.cmake/api/v1/reply/target-gt-annotate_lib-Debug-8cba162d3b0b5e5e9ea2.json
+build/CMakeFiles/gt-annotate_lib.dir/src/widgets/dockwidget.cc.o
+build/gt-annotate_lib_autogen/MROXUFLNXW/moc_dockwidget.cpp

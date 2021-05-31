@@ -14,6 +14,7 @@ constexpr auto TEST1_3_CANNY_OUTPUT{ "test_images/TEST1/3_canny_output.png" };
 constexpr auto TEST_DATA{ "TestData" };
 constexpr auto CONTOUR{ "Contour" };
 
+constexpr auto NAME{ "Name" };
 constexpr auto WIDTH{ "Width" };
 constexpr auto HEIGHT{ "Height" };
 constexpr auto X{ "x" };
@@ -39,39 +40,48 @@ namespace gtest_contour {
 
 	TEST_F(GTest_contour, test_FindContours0)
 	{
-		QJsonObject obj{{HEIGHT,10}, {WIDTH,40}, {X,229}, {Y,29}};
+		QString name = "0";
+		QJsonObject obj{{NAME,name}, {HEIGHT,10}, {WIDTH,40}, {X,229}, {Y,29}};
 		QJsonArray jarray_ref{};
 		jarray_ref.append(obj);
-		testFindContours(TEST1_0_CANNY_OUTPUT, jarray_ref);
+		
+		testFindContours(TEST1_0_CANNY_OUTPUT, jarray_ref, name);
 	}
 
 	TEST_F(GTest_contour, test_FindContours1)
 	{
 		QJsonArray jarray_ref{};
-		jarray_ref.append(QJsonObject({{HEIGHT,20}, {WIDTH,21}, {X,135}, {Y,105}}));
-		jarray_ref.append(QJsonObject({{HEIGHT,20}, {WIDTH,18}, {X,137}, {Y,33}}));
-		jarray_ref.append(QJsonObject({{HEIGHT,18}, {WIDTH,21}, {X,43}, {Y,32}}));
-		testFindContours(TEST1_1_CANNY_OUTPUT, jarray_ref);
+		QString name = "0";
+		jarray_ref.append(QJsonObject({{NAME,name}, {HEIGHT,20}, {WIDTH,21}, {X,135}, {Y,105}}));
+		jarray_ref.append(QJsonObject({{NAME,name}, {HEIGHT,20}, {WIDTH,18}, {X,137}, {Y,33}}));
+		jarray_ref.append(QJsonObject({{NAME,name}, {HEIGHT,18}, {WIDTH,21}, {X,43}, {Y,32}}));
+		
+		testFindContours(TEST1_1_CANNY_OUTPUT, jarray_ref, name);
 	}
 
 	TEST_F(GTest_contour, test_FindContours2)
 	{
+		QString name = "0";
 		QJsonArray jarray_ref{};
-		jarray_ref.append(QJsonObject({{HEIGHT,19}, {WIDTH,21}, {X,12}, {Y,79}}));
-		testFindContours(TEST1_2_CANNY_OUTPUT, jarray_ref);
+		jarray_ref.append(QJsonObject({{NAME,name}, {HEIGHT,19}, {WIDTH,21}, {X,12}, {Y,79}}));
+		
+		testFindContours(TEST1_2_CANNY_OUTPUT, jarray_ref, name);
 	}
 
 	TEST_F(GTest_contour, test_FindContours3)
 	{
+		QString name = "0";
 		QJsonArray jarray_ref{};
-		jarray_ref.append(QJsonObject({{HEIGHT,9}, {WIDTH,10}, {X,41}, {Y,118}}));
-		testFindContours(TEST1_3_CANNY_OUTPUT, jarray_ref);
+		jarray_ref.append(QJsonObject({{NAME,name}, {HEIGHT,9}, {WIDTH,10}, {X,41}, {Y,118}}));
+		
+		testFindContours(TEST1_3_CANNY_OUTPUT, jarray_ref, name);
 	}
 
 	TEST_F(GTest_contour, test_CrateRois0)
 	{
+		QString name = "0";
 		QJsonArray jarray_ref{};
-		jarray_ref.append(QJsonObject({{HEIGHT,10}, {WIDTH,40}, {X,229}, {Y,29}}));
+		jarray_ref.append(QJsonObject({{NAME,name}, {HEIGHT,10}, {WIDTH,40}, {X,229}, {Y,29}}));
 
 		testCrateRois(TEST1_0_CANNY, jarray_ref);
 
@@ -83,19 +93,19 @@ namespace gtest_contour {
 		Contour _contour;
 		cv::Mat test = cv::imread(str, cv::IMREAD_GRAYSCALE);
 		QJsonArray jarray{};
-		int i = 0;
+		QString i = "0";
 		_contour.CrateRois(test, i, jarray);
 		EXPECT_EQ (jarray, array);
 	}
 
-	void GTest_contour::testFindContours(std::string str, QJsonArray array)
+	void GTest_contour::testFindContours(std::string str, QJsonArray array, QString name)
 	{
 		
 		Contour _contour;
 		Logger->info("testFindContours({}, QJsonArray array)", str.c_str());
 		cv::Mat testImage = cv::imread(str, cv::IMREAD_GRAYSCALE);
 		QJsonArray jarray{};
-		_contour.FindContours(testImage, jarray);
+		_contour.FindContours(testImage, jarray, name);
 		EXPECT_EQ (jarray, array);
 		
 	}

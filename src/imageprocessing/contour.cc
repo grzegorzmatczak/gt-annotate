@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QRectF>
 
+constexpr auto NAME{ "Name" };
 constexpr auto WIDTH{ "Width" };
 constexpr auto HEIGHT{ "Height" };
 constexpr auto X{ "x" };
@@ -55,7 +56,7 @@ void Contour::CreateCannyImage(cv::Mat &opencv_img, cv::Mat &canny_output)
 	cv::Canny(opencv_img, canny_output, m_treshCanny, m_treshCanny*2 );
 }
 
-void Contour::FindContours(cv::Mat & canny_output, QJsonArray & contoursArray)
+void Contour::FindContours(cv::Mat & canny_output, QJsonArray & contoursArray, QString label)
 {
 	Logger->trace("Contour::FindContours()");
 	std::vector<std::vector<cv::Point> > contours;
@@ -101,6 +102,7 @@ void Contour::FindContours(cv::Mat & canny_output, QJsonArray & contoursArray)
 		int height = boundRect.height-1;
 		QJsonObject obj
 		{
+			{ NAME, label},
 			{ X, x },
 			{ Y, y },
 			{ WIDTH, width },
@@ -112,16 +114,16 @@ void Contour::FindContours(cv::Mat & canny_output, QJsonArray & contoursArray)
 	}
 }
 
-void Contour::CrateRois(cv::Mat &opencv_img, int & labelId, QJsonArray& contoursArray)
+void Contour::CrateRois(cv::Mat &opencv_img, QString label, QJsonArray& contoursArray)
 {
 	Logger->trace("Contour::CrateRois()");
 	cv::Mat canny_output;
 	Contour::CreateCannyImage(opencv_img, canny_output);
 	
 	
-	QString _name = QString::number(labelId) + "_canny_output.png";
+	QString _name = label + "_canny_output.png";
 	cv::imwrite(_name.toStdString(), canny_output);
 
-	Contour::FindContours(canny_output, contoursArray);
+	Contour::FindContours(canny_output, contoursArray, label);
 	Logger->trace("Contour::CrateRois() done");
 }
