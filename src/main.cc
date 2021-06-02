@@ -17,6 +17,11 @@ QJsonObject readConfig();
 int main(int argc, char* argv[])
 {
 	QApplication app(argc, argv);
+
+	qRegisterMetaType<QString>("QString");
+	//qRegisterMetaType<QString>("listInfo");
+	
+
 	Logger->set_level(static_cast<spdlog::level::level_enum>(0));
 	Logger->set_pattern("[%Y-%m-%d] [%H:%M:%S.%e] [%t] [%^%l%$] %v");
 

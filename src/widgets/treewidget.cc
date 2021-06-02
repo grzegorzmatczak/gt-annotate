@@ -14,6 +14,13 @@ TreeWidget::TreeWidget(const QJsonObject &a_config)
 {
 	Logger->trace("TreeWidget::TreeWidget()");
 
+	#ifdef _WIN32
+	m_split = "\\";
+	#endif // _WIN32
+	#ifdef __linux__
+	m_split = "/";
+	#endif // _UNIX
+
 	m_currentDirectory = a_config[DATASET].toObject()[IMAGE_DIRECTORY].toString();
 	m_currentPaintDirectory = a_config[DATASET].toObject()[GT_DIRECTRY].toString();
 	m_currentJsonDirectory = a_config[DATASET].toObject()[JSON_DIRECTORY].toString();
@@ -41,9 +48,67 @@ QString TreeWidget::currentFile() const
 	return current->text(0);
 }
 
-void TreeWidget::nextFile()
+void TreeWidget::onCopyFromNextFile()
 {
-	Logger->trace("TreeWidget::nextFile()");
+	Logger->warn("TreeWidget::onCopyFromNextFile()");
+	QTreeWidgetItem *currentItem = this->currentItem();
+	if (!currentItem)
+	{
+		Logger->error("!currentItem");
+		return;
+	}
+	QTreeWidgetItem *nextItem = this->itemBelow(currentItem);
+	if (!nextItem) 
+	{
+		Logger->error("!nextItem");
+		return;
+	}
+	QString iFile = nextItem->text(0);
+	QString iDir = currentDir();
+	if (iFile.isEmpty() || iDir.isEmpty())
+	{
+		Logger->error("iFile.isEmpty() || iDir.isEmpty()");
+		return;
+	}
+	QString iName = iFile.split('.')[0];
+	//Logger->trace("TreeWidget::onCopyFromNextFile() emit loadRois({}, {})", m_currentJsonDirectory.toStdString(), iName.toStdString());
+	//emit(loadRois(m_currentJsonDirectory, iName));
+	Logger->trace("TreeWidget::onCopyFromNextFile() emit loadPaint({}, {})", m_currentPaintDirectory.toStdString(), iName.toStdString());
+	emit(loadPaint(m_currentPaintDirectory, iName));
+}
+
+void TreeWidget::onCopyFromPreviousFile()
+{
+	Logger->warn("TreeWidget::onCopyFromPreviousFile()");
+	QTreeWidgetItem *currentItem = this->currentItem();
+	if (!currentItem)
+	{
+		Logger->error("!currentItem");
+		return;
+	}
+	QTreeWidgetItem *previousItem = this->itemAbove(currentItem);
+	if (!previousItem) 
+	{
+		Logger->error("!previousItem");
+		return;
+	}
+	QString iFile = previousItem->text(0);
+	QString iDir = currentDir();
+	if (iFile.isEmpty() || iDir.isEmpty())
+	{
+		Logger->error("iFile.isEmpty() || iDir.isEmpty()");
+		return;
+	}
+	QString iName = iFile.split('.')[0];
+	//Logger->trace("TreeWidget::onCopyFromPreviousFile() emit loadRois({}, {})", m_currentJsonDirectory.toStdString(), iName.toStdString());
+	//emit(loadRois(m_currentJsonDirectory, iName));
+	Logger->trace("TreeWidget::onCopyFromPreviousFile() emit loadPaint({}, {})", m_currentPaintDirectory.toStdString(), iName.toStdString());
+	emit(loadPaint(m_currentPaintDirectory, iName));
+}
+
+void TreeWidget::onNextFile()
+{
+	Logger->trace("TreeWidget::onNextFile()");
 	QTreeWidgetItem *currentItem = this->currentItem();
 	if (!currentItem)
 	{
@@ -55,10 +120,11 @@ void TreeWidget::nextFile()
 		return;
 	}
 	this->setCurrentItem(nextItem);
+	//emit(itemClicked());
 	onItemClicked();
 }
 
-void TreeWidget::previousFile() 
+void TreeWidget::onPreviousFile() 
 {
 	Logger->trace("TreeWidget::previousFile()");
 	QTreeWidgetItem *currentItem = this->currentItem();
@@ -72,6 +138,7 @@ void TreeWidget::previousFile()
 		return;
 	}
 	this->setCurrentItem(previousItem);
+	//emit(itemClicked());
 	onItemClicked();
 }
 
@@ -84,14 +151,10 @@ void TreeWidget::onItemClicked()
 	{
 		return;
 	}
-	emit(setCurrentPaintFolder(m_currentDirectory, m_currentPaintDirectory, m_currentJsonDirectory));
-	emit(loadImage(iFile));
-	
-
-	//allDisconnnect(image_canvas);
-	//int index = getImageCanvas(iFile, image_canvas);
-	//updateConnect(image_canvas);
-	//tabWidget->setCurrentIndex(index);
+	QString iName = iFile.split('.')[0];
+	emit(loadImage(m_currentDirectory, iName));
+	emit(loadRois(m_currentJsonDirectory, iName));
+	emit(loadPaint(m_currentPaintDirectory, iName));
 }
 
 void TreeWidget::onOpenDirectory()
@@ -101,14 +164,28 @@ void TreeWidget::onOpenDirectory()
 
 void TreeWidget::onOpenDialogDirectory()
 {
-	//statusBar()->clearMessage();
 	QString openedDir = QFileDialog::getExistingDirectory(this, "Choose a directory");
 	if (openedDir.isEmpty())
 		return;
 
 	this->openDirectory();
 	m_currentDirectory = openedDir;
-	//m_currentPaintDirectory
+}
+
+void TreeWidget::onSaveRoidAndPaint()
+{	
+	
+	Logger->trace("TreeWidget::onSaveRoidAndPaint()");
+	QString iFile = currentFile();
+	QString iName = iFile.split('.')[0];
+	Logger->trace("TreeWidget::onSaveRoidAndPaint() emit saveRois with ({}, {})", m_currentJsonDirectory.toStdString(), iName.toStdString());
+	Logger->trace("TreeWidget::onSaveRoidAndPaint() emit savePaint with ({}, {})", m_currentPaintDirectory.toStdString(), iName.toStdString());
+	
+	emit(saveRois(m_currentJsonDirectory, iName));
+	emit(savePaint(m_currentPaintDirectory, iName));
+
+	QTreeWidgetItem *currentItem = this->currentItem();
+	currentItem->setBackgroundColor(0, QColor(255, 0, 0, 100)); 
 }
 
 void TreeWidget::openDirectory()
