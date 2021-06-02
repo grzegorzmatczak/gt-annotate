@@ -10,8 +10,9 @@
 constexpr auto NAME{ "Name" };
 constexpr auto WIDTH{ "Width" };
 constexpr auto HEIGHT{ "Height" };
-constexpr auto X{ "x" };
-constexpr auto Y{ "y" };
+constexpr auto X{ "X" };
+constexpr auto Y{ "Y" };
+constexpr auto SIZE{ "Size" };
 
 constexpr auto CONTOUR{ "Contour" };
 constexpr auto CANNY_TRESHOLD{ "CannyTreshold" };
@@ -100,13 +101,18 @@ void Contour::FindContours(cv::Mat & canny_output, QJsonArray & contoursArray, Q
 		int y = boundRect.y+1;
 		int width = boundRect.width-1;
 		int height = boundRect.height-1;
+
+		int size = qAbs(width / 2) * qAbs(height / 2);
+
 		QJsonObject obj
 		{
 			{ NAME, label},
 			{ X, x },
 			{ Y, y },
 			{ WIDTH, width },
-			{ HEIGHT, height }
+			{ HEIGHT, height },
+			{ SIZE, size}
+
 		};
 		contoursArray.append(obj);
 		qDebug() << "obj:" << obj;
