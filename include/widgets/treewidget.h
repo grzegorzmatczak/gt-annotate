@@ -17,10 +17,6 @@ class TreeWidget : public QTreeWidget
 		explicit TreeWidget(const QJsonObject &a_config);
         QString currentDir() const;
 	    QString currentFile() const;
-        void nextFile();
-        void previousFile();
-        
-
 	private:
 		void openDirectory();
 
@@ -28,15 +24,25 @@ class TreeWidget : public QTreeWidget
 		void onOpenDirectory();
 		void onOpenDialogDirectory();
 		void onItemClicked();
+		void onCopyFromNextFile();
+		void onCopyFromPreviousFile();
+		void onNextFile();
+        void onPreviousFile();
+		void onSaveRoidAndPaint();
 
 	signals:
-		void loadImage(QString imageName);
+		void loadImage(QString dir, QString name);
+		void loadRois(QString dir, QString name);
+		void loadPaint(QString dir, QString name);
+		void saveRois(QString dir, QString name);
+		void savePaint(QString dir, QString name);
 		void setCurrentPaintFolder(QString imageFolder, QString paintFolder, QString jsonDirectory);
 
 	private:
 		QString m_currentDirectory;
 		QString m_currentPaintDirectory;
 		QString m_currentJsonDirectory;
+		QString m_split;
 		
 };
 

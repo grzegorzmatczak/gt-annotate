@@ -24,27 +24,45 @@ PainterSettings::PainterSettings()
 
 void PainterSettings::configureColors(QJsonObject const& a_config)
 {
-    Logger->trace("PainterSettings::configureColors()");
-    auto _colors = a_config[COLORS_FOREGROUND].toArray();
-    for (int i = 0; i < _colors.size(); i++)
-    {
-        auto _colorsIter = _colors[i].toObject();
-        QString _name = _colorsIter[NAME].toString();
-        m_colors.push_back(_name);
-        int _r = _colorsIter[R].toInt();
-        int _g = _colorsIter[G].toInt();
-        int _b = _colorsIter[B].toInt();
-        int _a = _colorsIter[A].toInt();
-        int _gray = _colorsIter[GRAY_COLOR].toInt();
+	Logger->trace("PainterSettings::configureColors()");
+	QJsonArray colorsForeground = a_config[COLORS_FOREGROUND].toArray() ;
+	QJsonArray colorsBackground = a_config[COLORS_BACKGROUND].toArray() ;
 
-        m_colorInthash.insert(_name, _gray);
-        m_colorHash.insert(_name, { _r, _g, _b, _a });
-    }
-    qDebug() << "m_colorInthash:" << m_colorInthash;
-    qDebug() << "m_colorHash:" << m_colorHash;
+	for (int i = 0; i < colorsBackground.size(); i++)
+	{
+		QJsonObject _colorsIter = colorsBackground[i].toObject();
+		QString _name = _colorsIter[NAME].toString();
+		m_colors.push_back(_name);
+		m_colors_background.push_back(_name);
+		PainterSettings::addrgbColors(_colorsIter);
+	}
+
+	for (int i = 0; i < colorsForeground.size(); i++)
+	{
+		QJsonObject _colorsIter = colorsForeground[i].toObject();
+		QString _name = _colorsIter[NAME].toString();
+		m_colors.push_back(_name);
+		m_colors_foreground.push_back(_name);
+		PainterSettings::addrgbColors(_colorsIter);
+	}
+	qDebug() << "m_colorIntHash:" << m_colorIntHash;
+	qDebug() << "m_colorHash:" << m_colorHash;
+}
+
+void PainterSettings::addrgbColors(QJsonObject json)
+{
+	QString _name = json[NAME].toString();
+	int _r = json[R].toInt();
+	int _g = json[G].toInt();
+	int _b = json[B].toInt();
+	int _a = json[A].toInt();
+	int _gray = json[GRAY_COLOR].toInt();
+
+	m_colorIntHash.insert(_name, _gray);
+	m_colorHash.insert(_name, { _r, _g, _b, _a });
 }
 
 void PainterSettings::changeColor(QColor color, QString label)
 {
-    this->m_colorHash[label] = color;
+	this->m_colorHash[label] = color;
 }
