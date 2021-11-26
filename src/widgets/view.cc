@@ -102,7 +102,7 @@ void View::setupSliders()
 
 
 	connect(m_zoomSlider, &QSlider::valueChanged, this, &View::onSetupMatrix );
-	connect(m_painter, &Painter::setupMatrix, this, &View::onSetupMatrix );
+	// TODO: connect(m_painter, &Painter::setupMatrix, this, &View::onSetupMatrix );
 
 	connect(m_opacitySlider, SIGNAL(valueChanged(int)), this, SLOT(setOpacity()));
 	connect(m_opacitySliderROI, SIGNAL(valueChanged(int)), this, SLOT(setOpacityROI()));
@@ -119,7 +119,7 @@ void View::setupGraphicsView()
 	m_graphicsView->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 	m_graphicsView->setScene(m_graphicsScene);
 
-	connect(m_graphicsScene, &GraphicsScene::paintWhiteBoard, m_painter, &Painter::onPaintWhiteBoard);
+	connect(m_graphicsScene, &GraphicsScene::paintWhiteBoard, m_painter, &Painter::onPaintOnBoard);
 	connect(m_graphicsView, &GraphicsView::zoomIn, this, &View::onZoomIn);
 	connect(m_graphicsView, &GraphicsView::zoomOut, this, &View::onZoomOut);
 }
@@ -148,7 +148,7 @@ void View::creteAction()
 	connect(action_loadDirectory, &QAction::triggered, this, &View::onLoadDirectory);
 
 	action_saveWhitePixmap = new QAction(tr("&Save objects"), this);
-	connect(action_saveWhitePixmap, &QAction::triggered, m_painter, &Painter::onSaveWhiteBoard);
+	//connect(action_saveWhitePixmap, &QAction::triggered, m_painter, &Painter::onSaveWhiteBoard);
 	View::onSetPaint();
 }
 
@@ -241,11 +241,12 @@ void View::onChangeColor2(QListWidgetItem* item)
 
 	if (color.isValid())
 	{
+		/* TODO:
 		if(m_painter->onChangeOldColor(oldColor, color) );
 		{
 			Logger->trace("onChangeOldColor true");
 			label->setNewColor(color);
-		}
+		}*/
 	}
 }
 
@@ -297,7 +298,7 @@ void View::onLoadDirectory()
 		return;
 	}
 	m_targetDirectoryPath += "/";
-	m_painter->loadImage("test_images/test1.png");
+	 m_painter->onLoadImage(m_targetDirectoryPath, "test_images/test1.png");
 	//View::renderColorsFromImage("test_images/test1.png");
 }
 

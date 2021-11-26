@@ -86,5 +86,5 @@ void ColorPickerLabel::paintEvent(QPaintEvent *event)
 
 QString ColorPickerLabel::getName()
 {
-
+    return "color";
 }

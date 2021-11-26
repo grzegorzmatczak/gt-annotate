@@ -33,10 +33,6 @@ void MainWindow::configure(QJsonObject const& a_config)
 
 void MainWindow::setupMainWidget() 
 {
-	Logger->trace("MainWindow::MainWindow() mainCentralLayout:");
-
-
-	
 	Logger->trace("MainWindow::MainWindow() mainLayout:");
 	QGridLayout* mainLayout = new QGridLayout;
 	m_view->setMinimumWidth(1000);

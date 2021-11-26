@@ -1,8 +1,8 @@
 #include <QApplication>
 #include <QStandardItemModel>
 
-#include "utils/configreader.h"
-#include "utils/includespdlog.h"
+#include "configreader.h"
+#include "includespdlog.h"
 #include "mainwindow.h"
 
 constexpr auto CONFIG{ "config.json" };
@@ -19,9 +19,7 @@ int main(int argc, char* argv[])
 	QApplication app(argc, argv);
 
 	qRegisterMetaType<QString>("QString");
-	//qRegisterMetaType<QString>("listInfo");
 	
-
 	Logger->set_level(static_cast<spdlog::level::level_enum>(0));
 	Logger->set_pattern("[%Y-%m-%d] [%H:%M:%S.%e] [%t] [%^%l%$] %v");
 
@@ -38,9 +36,9 @@ int main(int argc, char* argv[])
 }
 
 void intro() {
-	Logger->info("\n\n\t\033[1;31mgt-annotate v3.0\033[0m\n"
+	Logger->info("\n\n\t\033[1;31mgt-annotate v3.1\033[0m\n"
 		"\tAuthor: Grzegorz Matczak\n"
-		"\t03.05.2021\n");
+		"\t26.11.2021\n");
 }
 
 QJsonObject readConfig()

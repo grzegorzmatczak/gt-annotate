@@ -4,22 +4,19 @@
 #include <QtWidgets>
 #include <QHash>
 #include <QObject>
-#include "utils/includespdlog.h"
-#include "utils/configreader.h"
-#include "utils/listvector.h"
+#include "includespdlog.h"
+#include "configreader.h"
+#include "listvector.h"
 
 #include "widgets/graphicsscene.h"
 #include "widgets/graphicsview.h"
 #include "widgets/graphicspixmapitem.h"
 #include "imageprocessing/contour.h"
 
-
-
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
-
 
 class Painter : public QObject
 {	

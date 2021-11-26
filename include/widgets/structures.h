@@ -3,7 +3,7 @@
 
 #include <QDir>
 
-#include "utils/includespdlog.h"
+#include "includespdlog.h"
 
 
 enum uiMode

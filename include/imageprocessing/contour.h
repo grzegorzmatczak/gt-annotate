@@ -10,7 +10,7 @@ class QJsonDocument;
 class QDebug;
 class QRectF;
 
-#include "utils/includespdlog.h"
+#include "includespdlog.h"
 #include "widgets/graphicsrectitem.h"
 #include "widgets/paintersettings.h"
 

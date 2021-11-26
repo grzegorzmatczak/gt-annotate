@@ -52,7 +52,7 @@ ColorPickerWidget::ColorPickerWidget(const QJsonObject &a_config)
     }
 }
 
-int ColorPickerWidget::addColors(QString color){}
+int ColorPickerWidget::addColors(QString color){return 1;}
 
 QSize ColorPickerWidget::minimumSizeHint() const
 {

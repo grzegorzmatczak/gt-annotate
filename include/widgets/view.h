@@ -3,8 +3,10 @@
 
 #include <QtWidgets>
 #include <QHash>
-#include "utils/includespdlog.h"
-#include "utils/listvector.h"
+
+#include "includespdlog.h"
+#include "listvector.h"
+
 #include "widgets/graphicsscene.h"
 #include "widgets/graphicsview.h"
 #include "widgets/colorpicker.h"

@@ -6,7 +6,7 @@ constexpr auto WIDTH{ "Width" };
 constexpr auto HEIGHT{ "Height" };
 constexpr auto X{ "X" };
 constexpr auto Y{ "Y" };
-constexpr auto SIZE{ "Size" };
+constexpr auto SIZE_ROI{ "Size" };
 
 
 Painter::Painter(QJsonObject const& config, GraphicsScene *graphicsScene, GraphicsView* graphicsView)
@@ -164,10 +164,10 @@ void Painter::onSaveRois(QString dir, QString name)
 			//QString nameOfRect = cast->text();
 			for (int i = 0 ; i < m_painterSettings.m_colors_background.size() ; i++)
 			{	
-				if (cast->text() == m_painterSettings.m_colors_background[i])
-				{
-					b_saveFlag = false;
-				}
+				//if (cast->text() == m_painterSettings.m_colors_background[i])
+				//{
+				//	b_saveFlag = false;
+				//}
 			}
 			if(b_saveFlag)
 			{
@@ -176,8 +176,8 @@ void Painter::onSaveRois(QString dir, QString name)
 					{ Y, y },
 					{ WIDTH, width },
 					{ HEIGHT, height },
-					{ NAME, cast->text() },
-					{ SIZE, sizeRoi } };
+					//{ NAME, cast->text() },
+					{ SIZE_ROI, sizeRoi } };
 				_ROIArray.append(obj);
 			}
 		}
@@ -279,7 +279,7 @@ void Painter::addRoisToScene(QJsonArray contoursArray)
 	{
 		QJsonObject obj = contoursArray[i].toObject();
 		QString name = obj[NAME].toString();
-		int size = obj[SIZE].toInt();
+		int size = obj[SIZE_ROI].toInt();
 		QRectF tempRectToText = QRectF(obj[X].toInt(), obj[Y].toInt(), obj[WIDTH].toInt(),obj[HEIGHT].toInt());
 		qDebug() << "tempRectToText:" << tempRectToText;
 		QColor _color = m_painterSettings.m_colorHash[name];
@@ -297,7 +297,7 @@ void Painter::addImageToScene(QPixmap image)
 	m_pixmap = static_cast<GraphicsPixmapItem*>(m_graphicsScene->addPixmap(image));
 	
 	//m_pixmap = new GraphicsPixmapItem();
-	m_pixmap->configure(m_imageType);
+	// TODO: m_pixmap->configure(m_imageType);
 	Logger->trace("Painter::addImageToScene() m_pixmap.type:{}",m_pixmap->type());
 	m_pixmap->setEnabled(true);
 	m_pixmap->setVisible(true);
@@ -324,7 +324,7 @@ void Painter::addImageToScene(QPixmap image)
 	QPixmap whiteBoardPixmap = QPixmap::fromImage(m_paintImage);
 	m_paintPixmap = static_cast<GraphicsPixmapItem*>(m_graphicsScene->addPixmap(whiteBoardPixmap));
 	//m_paintPixmap = new GraphicsPixmapItem();
-	m_paintPixmap->configure(m_paintType);
+	// TODO: m_paintPixmap->configure(m_paintType);
 	Logger->trace("Painter::addImageToScene() m_paintPixmap.type:{}",m_paintPixmap->type());
 	m_paintPixmap->setEnabled(true);
 	m_paintPixmap->setVisible(true);
