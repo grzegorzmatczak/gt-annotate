@@ -83,6 +83,9 @@ clone_build(spdlog)
 file(GLOB_RECURSE SRC_UTILS Utils/src/*.cc)
 file(GLOB_RECURSE HEADERS_UTILS Utils/include/*.h)
 
+file(GLOB_RECURSE SRC_DATA DataManagement/src/*.cc)
+file(GLOB_RECURSE HEADERS_DATA DataManagement/include/*.h)
+
 set(SRC_MAIN src/main.cc)
 
 set(SRC
@@ -102,8 +105,11 @@ add_library(${PROJECT_NAME}_lib STATIC
 	${SRC_WIDGETS} ${HEADERS_WIDGETS}
 	${SRC_IMAGE_PROCESSING} ${HEADERS_IMAGE_PROCESSING})
 
-add_library(utils STATIC
+add_library(utils_lib STATIC
 	${SRC_UTILS} ${HEADERS_UTILS})
+
+add_library(data_lib STATIC
+	${SRC_DATA} ${HEADERS_DATA})
 
 add_executable(${PROJECT_NAME}
     ${SRC_MAIN})
@@ -114,18 +120,15 @@ file(GLOB_RECURSE SRC_HEADERS_TEST gtest/*.cc gtest/*.h)
 
 add_executable(g_test ${SRC_HEADERS_TEST})
 
-target_link_libraries(utils ${QT_LIBRARIES} spdlog)
-target_link_libraries(utils Qt5::Core Qt5::Widgets)
+target_link_libraries(utils_lib ${QT_LIBRARIES} spdlog Qt5::Core Threads::Threads)
+target_link_libraries(data_lib utils_lib)
 
 target_link_libraries(${PROJECT_NAME}_lib ${QT_LIBRARIES} ${OpenCV_LIBS} Threads::Threads utils)
-target_link_libraries(${PROJECT_NAME}_lib Qt5::Core  Qt5::Widgets Qt5::OpenGL)
+target_link_libraries(${PROJECT_NAME}_lib Qt5::Core Qt5::Widgets Qt5::OpenGL)
 
-target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_lib ${QT_LIBRARIES} ${OpenCV_LIBS} Threads::Threads utils)
-target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_lib Qt5::Core  Qt5::Widgets Qt5::OpenGL)
+target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_lib)
 
 target_link_libraries(g_test ${PROJECT_NAME}_lib gtest gmock utils)
-target_link_libraries(g_test ${PROJECT_NAME}_lib Qt5::Core Threads::Threads Qt5::OpenGL)
-
 
 message("CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE} ")
 
