@@ -6,13 +6,14 @@
 class QJsonObject;
 class QJsonArray;
 class QFile;
+class QString;
 class QJsonDocument;
 class QDebug;
 class QRectF;
 
 #include "includespdlog.h"
-#include "widgets/graphicsrectitem.h"
-#include "widgets/paintersettings.h"
+//#include "widgets/graphicsrectitem.h"
+//#include "widgets/paintersettings.h"
 
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
@@ -27,10 +28,10 @@ class Contour
 		void configure(const QJsonObject &a_config);
 		void CreateCannyImage(cv::Mat &opencv_img, cv::Mat &canny_output);
 		void FindContours(cv::Mat & canny_output, QJsonArray & contoursArray, QString label);
-		void CrateRois(cv::Mat &opencv_img, QString label, QJsonArray& contoursArray);
+		//void CrateRois(cv::Mat &opencv_img, QString label, QJsonArray& contoursArray);
 
 	private:
-		PainterSettings * m_painterSettings;
+		//PainterSettings * m_painterSettings;
 		void configureDefault();
 
 	private:

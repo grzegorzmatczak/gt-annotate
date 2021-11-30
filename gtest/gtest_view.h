@@ -3,8 +3,8 @@
 
 #include <QDebug>
 
-#include "utils/includespdlog.h"
-#include "utils/configreader.h"
+#include "includespdlog.h"
+#include "configreader.h"
 #include "widgets/view.h"
 #include "mainwindow.h"
 

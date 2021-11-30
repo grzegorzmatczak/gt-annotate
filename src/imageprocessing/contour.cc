@@ -6,6 +6,7 @@
 #include <QJsonDocument>
 #include <QDebug>
 #include <QRectF>
+#include <QString>
 
 constexpr auto NAME{ "Name" };
 constexpr auto WIDTH{ "Width" };
@@ -72,7 +73,7 @@ void Contour::FindContours(cv::Mat & canny_output, QJsonArray & contoursArray, Q
 	for (unsigned int i = 0; i < contours.size(); i++)
 	{
 		area = cv::contourArea(contours[i]);
-		if ((area >= m_minArea) && (area <= m_maxArea))
+		//if ((area >= m_minArea) && (area <= m_maxArea))
 		{
 			contoursBEST.push_back(contours[i]);
 			hierarchyBEST.push_back(hierarchy[i]);
@@ -119,7 +120,7 @@ void Contour::FindContours(cv::Mat & canny_output, QJsonArray & contoursArray, Q
 		qDebug() << "contoursArray:" << contoursArray;
 	}
 }
-
+/*
 void Contour::CrateRois(cv::Mat &opencv_img, QString label, QJsonArray& contoursArray)
 {
 	Logger->trace("Contour::CrateRois()");
@@ -132,4 +133,4 @@ void Contour::CrateRois(cv::Mat &opencv_img, QString label, QJsonArray& contours
 
 	Contour::FindContours(canny_output, contoursArray, label);
 	Logger->trace("Contour::CrateRois() done");
-}
+}*/

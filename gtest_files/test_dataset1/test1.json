@@ -1,0 +1,23 @@
+{
+	"FromVideo": true,
+	"VideoName": "test_dataset1.mp4",
+	"ZeroPadding": 6,
+	"InputType": ".png",
+	"OutputType": ".png",
+	"Height": 720,
+	"Width": 1280,
+	"InputPrefix": "%06d.png",
+	"DirectoryCleanTrain": "clean_train",
+	"DirectoryCleanTest": "clean_test",
+	"DirectoryGtTrain": "gt_train",
+	"DirectoryGtTest": "gt_test",
+	"DirectoryClean": "clean",
+	"DirectoryGt": "gt",
+	"InitializationFrames": 50,
+	"StartTrain": 0,
+	"StopTrain": 700,
+	"StartTest": 701,
+	"StopTest": 900,
+	"AllFrames": 902,
+	"Resize": false
+}

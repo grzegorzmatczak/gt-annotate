@@ -20,8 +20,8 @@ constexpr auto HEIGHT{ "Height" };
 constexpr auto X{ "x" };
 constexpr auto Y{ "y" };
 
-#include "utils/configreader.h"
-#include "utils/includespdlog.h"
+#include "configreader.h"
+#include "includespdlog.h"
 #include "imageprocessing/contour.h"
 
 using ::testing::AtLeast;

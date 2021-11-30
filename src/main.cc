@@ -36,15 +36,15 @@ int main(int argc, char* argv[])
 }
 
 void intro() {
-	Logger->info("\n\n\t\033[1;31mgt-annotate v3.1\033[0m\n"
+	Logger->info("\n\n\t\033[1;31mgt-annotate v3.2\033[0m\n"
 		"\tAuthor: Grzegorz Matczak\n"
-		"\t26.11.2021\n");
+		"\t30.11.2021\n");
 }
 
 QJsonObject readConfig()
 {
 	QString configName{ CONFIG };
-	std::shared_ptr<ConfigReader> cR = std::make_shared<ConfigReader>();
+	std::unique_ptr<ConfigReader> cR = std::make_unique<ConfigReader>();
 	QJsonObject jObject;
 	if (!cR->readConfig(configName, jObject))
 	{

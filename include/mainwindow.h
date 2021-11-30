@@ -4,7 +4,9 @@
 #include <QtWidgets>
 
 #include "includespdlog.h"
-#include "widgets/view.h"
+#include "widgets/view/view.h"
+
+#include "data.h"
 
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
@@ -37,14 +39,13 @@ class MainWindow : public QWidget
 	private:
 		QMenu* m_fileMenu;
 		QMenuBar* m_menuBar;
-		QTreeView* m_labelList;
-		QVBoxLayout* m_rightLayout;
-		QWidget* m_rightLayoutContainer;
-		QGridLayout* m_gridLayout;
-		QWidget* m_rightWidget;
+		
+		//DataWidget* m_dataWidget;
+		DataMemory* m_dataMemory;
 
 	private:
 		View* m_view;
+
 
 };
 
