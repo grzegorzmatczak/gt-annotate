@@ -1,3 +1,6 @@
 [submodule "Utils"]
 	path = Utils
 	url = https://github.com/grzegorzmatczak/Utils.git
+[submodule "DataManagement"]
+	path = DataManagement
+	url = https://github.com/grzegorzmatczak/DataManagement.git
