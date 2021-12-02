@@ -116,6 +116,7 @@ class View : public QFrame
 		QAction* action_ROI;
 		QAction* action_loadDirectory;
 		QAction* action_saveWhitePixmap;
+		QAction* action_create_roi;
 
 	private:
 		qreal m_scaleOpacity;

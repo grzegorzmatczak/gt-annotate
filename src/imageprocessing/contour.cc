@@ -50,20 +50,22 @@ void Contour::configure(const QJsonObject &a_config)
 	m_maxArea = a_config[MAX_AREA].toInt();
 }
 
-void Contour::CreateCannyImage(cv::Mat &opencv_img, cv::Mat &canny_output)
+void Contour::createCannyImage(cv::Mat &opencv_img, cv::Mat &canny_output)
 {
-	Logger->trace("Contour::CreateCannyImage()");
+	Logger->trace("Contour::createCannyImage()");
 	cv::dilate(opencv_img, opencv_img, cv::Mat(), cv::Point(-1, -1), m_dilateCounter, 1, 1);
 	cv::erode(opencv_img, opencv_img, cv::Mat(), cv::Point(-1, -1), m_erodeCounter, 1, 1);
 	cv::Canny(opencv_img, canny_output, m_treshCanny, m_treshCanny*2 );
 }
 
-void Contour::FindContours(cv::Mat & canny_output, QJsonArray & contoursArray, QString label)
+void Contour::findContours(cv::Mat & input, QJsonArray & contoursArray, QString label)
 {
+	cv::Mat canny_output;
+	Contour::createCannyImage(input, canny_output);
 	Logger->trace("Contour::FindContours()");
 	std::vector<std::vector<cv::Point> > contours;
 	std::vector<cv::Vec4i> hierarchy;
-	cv::findContours(canny_output, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE );
+	cv::findContours(input, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE );
 
 	double area;
 	std::vector<std::vector<cv::Point>> contoursBEST;
@@ -98,10 +100,10 @@ void Contour::FindContours(cv::Mat & canny_output, QJsonArray & contoursArray, Q
             line( drawing, rect_points[j], rect_points[(j+1)%4], color );
         }*/
 
-		int x = boundRect.x+1;
-		int y = boundRect.y+1;
-		int width = boundRect.width-1;
-		int height = boundRect.height-1;
+		int x = boundRect.x;
+		int y = boundRect.y;
+		int width = boundRect.width;
+		int height = boundRect.height;
 
 		int size = qAbs(width / 2) * qAbs(height / 2);
 
@@ -121,7 +123,7 @@ void Contour::FindContours(cv::Mat & canny_output, QJsonArray & contoursArray, Q
 	}
 }
 /*
-void Contour::CrateRois(cv::Mat &opencv_img, QString label, QJsonArray& contoursArray)
+void Contour::crateRois(cv::Mat &opencv_img, QString label, QJsonArray& contoursArray)
 {
 	Logger->trace("Contour::CrateRois()");
 	cv::Mat canny_output;

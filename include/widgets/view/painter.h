@@ -21,6 +21,8 @@
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 
+
+
 class Painter : public QObject
 {	
 	Q_OBJECT
@@ -51,7 +53,7 @@ class Painter : public QObject
 		void onCreateRois();
 		void onSetCurrentPaintFolder(QString imageFolder, QString paintFolder, QString jsonDirectory);
 		void onSavePaint();
-		void onSaveRois(QString dir, QString name);
+		void onSaveRois();
 		void onLoadImage(QString dir, QString name);
 		void onLoadPaints(int id);
 		void onLoadRois(QString dir, QString name);

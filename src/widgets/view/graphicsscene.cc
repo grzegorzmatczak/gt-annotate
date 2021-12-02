@@ -92,7 +92,7 @@ void GraphicsScene::mouseMoveEvent(QGraphicsSceneMouseEvent* e)
 	{
 		//qreal x = e->scenePos().x();
 		//qreal y = e->scenePos().y();
-		//QGraphicsScene::mouseMoveEvent(e);
+		QGraphicsScene::mouseMoveEvent(e);
 		//emit(updateView());
 	}
 	else if (m_mode == uiMode::MoveSelect)
@@ -145,7 +145,7 @@ void GraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
 
 void GraphicsScene::setMode(uiMode mode)
 {
-	Logger->trace("GraphicsScene::setMode()");
+	Logger->trace("GraphicsScene::setMode(mode:{})", mode);
 	m_mode = mode;
 }
 

@@ -26,9 +26,9 @@ class Contour
 	public:
 		Contour();
 		void configure(const QJsonObject &a_config);
-		void CreateCannyImage(cv::Mat &opencv_img, cv::Mat &canny_output);
-		void FindContours(cv::Mat & canny_output, QJsonArray & contoursArray, QString label);
-		//void CrateRois(cv::Mat &opencv_img, QString label, QJsonArray& contoursArray);
+		void createCannyImage(cv::Mat &opencv_img, cv::Mat &canny_output);
+		void findContours(cv::Mat & input, QJsonArray & contoursArray, QString label);
+		//void crateRois(cv::Mat &opencv_img, QString label, QJsonArray& contoursArray);
 
 	private:
 		//PainterSettings * m_painterSettings;

@@ -1,5 +1,7 @@
 #include "widgets/view/painter.h"
 
+#include "widgets/view/rect.h"
+
 constexpr auto ROI{ "ROI" };
 constexpr auto NAME{ "Name" };
 constexpr auto WIDTH{ "Width" };
@@ -128,11 +130,13 @@ void Painter::onSetCurrentPaintFolder(QString imageFolder, QString paintFolder, 
 	m_currentJsonDirectory = jsonDirectory;
 }
 
-void Painter::onSaveRois(QString dir, QString name)
+void Painter::onSaveRois()
 {
-	Logger->trace("Painter::onSaveRois({}, {})", dir.toStdString(), name.toStdString());
-	QString m_fileNameWithPath = dir + m_split + name + ".json";
-
+	Logger->trace("View::onSaveRois()");
+	//Logger->trace("Painter::onSaveRois({}, {})", dir.toStdString(), name.toStdString());
+	//QString m_fileNameWithPath = dir + m_split + name + ".json";
+	const QString m_fileNameWithPath = m_dataMemory->m_roiPaths[m_id] + m_dataMemory->m_roiNames[m_id];
+	Logger->trace("View::onSaveRois() m_fileNameWithPath:{}",m_fileNameWithPath.toStdString());
 	QJsonArray _ROIArray;
 	std::vector<QJsonArray> _arrays;
 
@@ -146,7 +150,6 @@ void Painter::onSaveRois(QString dir, QString name)
 	spdlog::trace("View::onSaveRois() size:{}", items.size());
 	for (int i = 0; i < items.size(); i++)
 	{
-		QString filename = "";
 		QRectF rect = items[i]->boundingRect();
 		QPointF pos = items[i]->pos();
 
@@ -178,7 +181,7 @@ void Painter::onSaveRois(QString dir, QString name)
 					{ Y, y },
 					{ WIDTH, width },
 					{ HEIGHT, height },
-					//{ NAME, cast->text() },
+					{ NAME, cast->text() },
 					{ SIZE_ROI, sizeRoi } };
 				_ROIArray.append(obj);
 			}
@@ -198,19 +201,22 @@ void Painter::onSaveRois(QString dir, QString name)
 	QString possibleError;
 	QJsonArray jROI = json[ROI].toArray();
 	qDebug() << "jROI:" << jROI;
+	Logger->trace("View::onSaveRois() done");
 }
 
 
 void Painter::onSavePaint()
 {
+	Logger->trace("View::onSavePaint()");
 	//Logger->trace("Painter::onSavePaint({}, {})", dir.toStdString(), name.toStdString());
 	//QString m_fileNameWithPath = dir + m_split + name + ".png";
 	cv::Mat cleanData = cv::Mat(m_paintImage.height(), m_paintImage.width(), CV_8UC1, cv::Scalar(0));
 
-	int counter;
+	Painter::onSaveRois();
+	//onCreateRois();
 
-	qint32 _counterWhite = 0;
-	qint32 _counterShadow = 0;
+	int counter{0};
+
 	for (int i = 0; i < m_painterSettings.m_colors.size(); i++)
 	{
 		QString color = m_painterSettings.m_colors[i];
@@ -260,7 +266,9 @@ void Painter::onCreateRois()
 			}
 		}
 		QJsonArray contoursArray{};
-		//m_contour.CrateRois(cleanData, m_painterSettings.m_colors_foreground[color], contoursArray);
+		m_contour.findContours(cleanData, contoursArray, m_painterSettings.m_colors_foreground[color]);
+
+		//void Contour::findContours(cv::Mat & canny_output, QJsonArray & contoursArray, QString label)
 		for(int i = 0 ; i < contoursArray.size() ; i++)
 		{
 			_array.append(contoursArray[i]);
@@ -269,6 +277,7 @@ void Painter::onCreateRois()
 		Logger->trace("Painter::addRoisToScene()");
 		QString _name = QString::number(color) + "_CrateRois.png";
 		cv::imwrite(_name.toStdString(), cleanData);
+		//m_contour.findContours()
 		
 	}
 	Painter::addRoisToScene(_array);
@@ -350,17 +359,21 @@ void Painter::onAddRectToScene(QPointF startPoint, QPointF stopPoint, bool dialo
 				QString tempStr = dialog->getLabelName();
 				QRectF tempRectToText = QRectF(x, y, width, heigt);
 				QColor color = QColor::fromRgb(0, 0, 0, 0);
+				GraphicsRectItem* rectItem = new GraphicsRectItem(color, tempStr, tempRectToText,m_roiType);
+				m_graphicsScene->addItem(rectItem);
+				/*
 				SelectText* selectText = new SelectText(color, tempStr, tempRectToText, m_graphicsScene, ret);
 				selectText->setRect(tempRectToText);
 				selectText->setEnabled(true);
 				selectText->setVisible(true);
-				m_graphicsScene->addItem(selectText);
+				m_graphicsScene->addItem(selectText);*/
+				/*
 				listInfo _info{ ret, tempStr, 10, true };
 				itemOnScene _item{ _info };
 				m_tempVector->addItem(ret, _item); // m_tempVector->
 				qint32 _size = qAbs(width / 2) * qAbs(heigt / 2);
 				const listInfo list{ ret, tempStr, _size, true };
-				emit(addList(list));
+				emit(addList(list));*/
 			}
 		}
 		if (dialogCode == QDialog::Rejected)
@@ -381,9 +394,10 @@ void Painter::onAddRectToScene(QPointF startPoint, QPointF stopPoint, bool dialo
 			selectText->setRect(tempRectToText);
 			selectText->setVisible(true);
 			m_graphicsScene->addItem(selectText);
+			/*
 			listInfo _info{ ret, name, 10, true };
 			itemOnScene _item{ _info };
-			m_tempVector->addItem(ret, _item);
+			m_tempVector->addItem(ret, _item);*/
 		}
 	}
 }

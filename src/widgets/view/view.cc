@@ -26,6 +26,7 @@ View::View(QJsonObject const& a_config, DataMemory* dataMemory, QFrame* parent)
 	m_painter->onChangePenSize(3);
 	connect(this, &View::loadImage, m_painter, &Painter::onLoadImage);
 	connect(this, &View::loadPaints, m_painter, &Painter::onLoadPaints);
+	connect(m_graphicsScene, &GraphicsScene::addRectToScene, m_painter, &Painter::onAddRectToScene);
 
 	View::onSetPaint();
 	View::onLoadDirectory();
@@ -163,10 +164,15 @@ void View::creteAction()
 	action_loadDirectory->setToolTip("Load Directory");
 	connect(action_loadDirectory, &QAction::triggered, this, &View::onLoadDirectory);
 	
+	action_create_roi = new QAction(tr("&Create ROI"), this);
+	action_create_roi->setToolTip("create all roi on current images");
+	connect(action_create_roi, &QAction::triggered, m_painter, &Painter::onCreateRois);
 
 	action_saveWhitePixmap = new QAction(tr("&Save objects"), this);
 	action_saveWhitePixmap->setToolTip("Save all roi on current images");
 	connect(action_saveWhitePixmap, &QAction::triggered, m_painter, &Painter::onSavePaint);
+	//connect(action_saveWhitePixmap, &QAction::triggered, m_painter, &Painter::onSaveRois);
+	
 	connect(m_painter, &Painter::updateFileFromId, m_dataWidget, &DataWidget::onUpdateFileFromId );
 	View::onSetPaint();
 }
@@ -201,6 +207,7 @@ void View::setupLeftToolBar()
 	m_leftToolBar->addAction(action_move);
 	m_leftToolBar->addAction(action_ROI);
 	m_leftToolBar->addSeparator();
+	m_leftToolBar->addAction(action_create_roi);
 	m_leftToolBar->addAction(action_saveWhitePixmap);
 	m_leftToolBar->addSeparator();
 	m_leftToolBar->addAction(action_loadDirectory);

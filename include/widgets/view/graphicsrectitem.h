@@ -18,6 +18,7 @@ class GraphicsRectItem : public QGraphicsRectItem
 	public: // override:
 		int type() const override;
 		void paint(QPainter *painter, const QStyleOptionGraphicsItem *item, QWidget *widget) override;
+		QString text(){return m_text;}
 
 	private:
 		void setPainterAndText(QPainter *painter, int deltax, int deltay, int pixelSize, int penWidth);

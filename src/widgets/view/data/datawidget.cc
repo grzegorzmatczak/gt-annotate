@@ -89,8 +89,8 @@ void DataWidget::onUpdateFileFromId(int id)
 	Logger->trace("DataWidget::onUpdateFileFromId(id:{})", id);
 	m_dataMemory->countGtElements(id);
 	onUpdateFile(id, m_dataMemory->filenames(id), m_dataMemory->gtElements(id));
-	emit(loadImage(m_dataMemory->paths(id), m_dataMemory->filenames(id)));
-    emit(loadPaints(id));
+	//emit(loadImage(m_dataMemory->paths(id), m_dataMemory->filenames(id)));
+    //emit(loadPaints(id));
 }
 
 void DataWidget::clearModel()
