@@ -3,6 +3,8 @@
 #include <QDebug>
 #include <QPainter>
 
+//#define DEBUG
+
 constexpr auto NAME{ "Name" };
 constexpr auto COLORS_FOREGROUND{ "ColorsForeground" };
 constexpr auto COLORS_BACKGROUND{ "ColorsBackground" };
@@ -33,20 +35,28 @@ static QColor readableColor(const QColor & color)
 {
 	int r, g, b;
 	color.getRgb(&r, &g, &b);
-    Logger->trace("ColorPickerLabel::readableColor()  rgb:{},{},{}" , r, g, b);
+    #ifdef DEBUG
+        Logger->debug("ColorPickerLabel::readableColor()  rgb:{},{},{}" , r, g, b);
+    #endif
 
     if( r<=10 && g<=10 && b<=10)
     {
-        Logger->trace("ColorPickerLabel::readableColor()  return 255");
-        return QColor(255, 255, 255,100);
+        #ifdef DEBUG
+        Logger->debug("ColorPickerLabel::readableColor() return QColor(255, 255, 255, 100)");
+        #endif
+        return QColor(255, 255, 255, 100);
     }
 
 	if ((r*0.299 + g*0.587 + b*0.114) > 150)
     {
-        Logger->trace("ColorPickerLabel::readableColor()  return 0");
+        #ifdef DEBUG
+        Logger->debug("ColorPickerLabel::readableColor() return QColor(0, 0, 0)");
+        #endif
         return QColor(0, 0, 0);
     }
-    Logger->trace("ColorPickerLabel::readableColor()  return 255");
+    #ifdef DEBUG
+    Logger->debug("ColorPickerLabel::readableColor() return QColor(255, 255, 255)");
+    #endif
 	return QColor(255, 255, 255);
 }
 
@@ -58,8 +68,10 @@ void ColorPickerLabel::setNewColor(QColor color)
 
 void ColorPickerLabel::configure(const QJsonObject &a_config) 
 {
-    Logger->trace("ColorPickerLabel::configure()");
+    #ifdef DEBUG
+    Logger->debug("ColorPickerLabel::configure()");
     qDebug()<< "ColorPickerLabel::configure() a_config:" << a_config;
+    #endif
     qint32 r = a_config[R].toInt();
     qint32 g = a_config[G].toInt();
     qint32 b = a_config[B].toInt();
@@ -67,10 +79,13 @@ void ColorPickerLabel::configure(const QJsonObject &a_config)
     m_color = QColor(r, g, b);
     m_name = a_config[NAME].toString();
     this->setText(a_config[NAME].toString());
-    Logger->trace("ColorPickerLabel::configure() setStyleSheet name:{}", m_color.name().toStdString());
-    
+    #ifdef DEBUG
+    Logger->debug("ColorPickerLabel::configure() setStyleSheet name:{}", m_color.name().toStdString());
+    #endif
     setStyleSheet("QLabel { background-color : " + m_color.name() + "; color : " + readableColor(m_color).name() + "; font:  14px; }");
-    Logger->trace("ColorPickerLabel::configure() setStyleSheet done");
+    #ifdef DEBUG
+    Logger->debug("ColorPickerLabel::configure() done");
+    #endif
 }
 
 void ColorPickerLabel::setSelected(bool s)

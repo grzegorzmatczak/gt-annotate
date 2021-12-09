@@ -1,5 +1,7 @@
 #include "widgets/view/paintersettings.h"
 
+//#define DEBUG
+
 constexpr auto NAME{ "Name" };
 constexpr auto COLORS_FOREGROUND{ "ColorsForeground" };
 constexpr auto COLORS_BACKGROUND{ "ColorsBackground" };
@@ -24,7 +26,9 @@ PainterSettings::PainterSettings()
 
 void PainterSettings::configureColors(QJsonObject const& a_config)
 {
-	Logger->trace("PainterSettings::configureColors()");
+	#ifdef DEBUG
+	Logger->debug("PainterSettings::configureColors()");
+	#endif
 	QJsonArray colorsForeground = a_config[COLORS_FOREGROUND].toArray() ;
 	QJsonArray colorsBackground = a_config[COLORS_BACKGROUND].toArray() ;
 
@@ -35,6 +39,7 @@ void PainterSettings::configureColors(QJsonObject const& a_config)
 		m_colors.push_back(_name);
 		m_colors_background.push_back(_name);
 		PainterSettings::addrgbColors(_colorsIter);
+		m_colorBackground = colorFormJsonObject(_colorsIter);
 	}
 
 	for (int i = 0; i < colorsForeground.size(); i++)
@@ -44,9 +49,14 @@ void PainterSettings::configureColors(QJsonObject const& a_config)
 		m_colors.push_back(_name);
 		m_colors_foreground.push_back(_name);
 		PainterSettings::addrgbColors(_colorsIter);
+		m_color = colorFormJsonObject(_colorsIter);
+		
 	}
-	qDebug() << "m_colorIntHash:" << m_colorIntHash;
-	qDebug() << "m_colorHash:" << m_colorHash;
+	#ifdef DEBUG
+	Logger->debug("PainterSettings::configureColors() done:");
+	qDebug() << "PainterSettings::configureColors() m_colorIntHash:" << m_colorIntHash;
+	qDebug() << "PainterSettings::configureColors() m_colorHash:" << m_colorHash;
+	#endif
 }
 
 void PainterSettings::addrgbColors(QJsonObject json)
@@ -60,6 +70,15 @@ void PainterSettings::addrgbColors(QJsonObject json)
 
 	m_colorIntHash.insert(_name, _gray);
 	m_colorHash.insert(_name, { _r, _g, _b, _a });
+}
+
+QColor PainterSettings::colorFormJsonObject(QJsonObject json)
+{
+	int _r = json[R].toInt();
+	int _g = json[G].toInt();
+	int _b = json[B].toInt();
+	int _a = json[A].toInt();
+	return QColor{ _r, _g, _b, _a };
 }
 
 void PainterSettings::changeColor(QColor color, QString label)

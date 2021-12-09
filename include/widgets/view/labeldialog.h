@@ -16,51 +16,51 @@ class SelectLabel;
 
 class GeneralTab : public QWidget
 {
-  Q_OBJECT
+	Q_OBJECT
 
  public:
-  explicit GeneralTab(const QFileInfo &fileInfo, QWidget *parent = 0);
+	explicit GeneralTab(const QFileInfo &fileInfo, QWidget *parent = 0);
 
-  QString getLabelName();
+	QString getLabelName();
 
  private:
-  QLineEdit *fileNameEdit;
+	QLineEdit *fileNameEdit;
 };
 
 class LabelDialog : public QDialog
 {
-  Q_OBJECT
+	Q_OBJECT
 
  public:
-  explicit LabelDialog(const QString &fileName, QWidget *parent = 0);
+	explicit LabelDialog(const QString &fileName, QWidget *parent = 0);
 
-  QString getLabelName();
-
- private:
-  QTabWidget *tabWidget;
-  QDialogButtonBox *buttonBox;
-  GeneralTab *tabGeneral;
+	QString getLabelName();
 
  private:
-  void accept() override;
-  void reject() override;
-  SelectLabel *m_selectLabel;
+	QTabWidget *tabWidget;
+	QDialogButtonBox *buttonBox;
+	GeneralTab *tabGeneral;
+
+ private:
+	void accept() override;
+	void reject() override;
+	SelectLabel *m_selectLabel;
 
  public:
 };
 
 class SelectLabel : public QWidget
 {
-  Q_OBJECT
+	Q_OBJECT
 
  public:
-  explicit SelectLabel(const QFileInfo &fileInfo, QWidget *parent = 0);
+	explicit SelectLabel(const QFileInfo &fileInfo, QWidget *parent = 0);
 
  public:
-  QString getSelected();
+	QString getSelected();
 
  private:
-  QListWidget *applicationsListBox;
+	QListWidget *applicationsListBox;
 };
 
 #endif // LABELDIALOG_H

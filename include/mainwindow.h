@@ -28,24 +28,15 @@ class MainWindow : public QWidget
 		void createMenus();
 		void setupView(QJsonObject const& a_config);
 		void setupButtons();
-        void setupLayout();
-
-	private slots:
-        
-	signals:
-	
-	public slots:
+		void setupLayout();
 
 	private:
 		QMenu* m_fileMenu;
 		QMenuBar* m_menuBar;
-		
-		//DataWidget* m_dataWidget;
 		DataMemory* m_dataMemory;
 
 	private:
 		View* m_view;
-
 
 };
 

@@ -1,6 +1,7 @@
 #include "widgets/view/painter.h"
-
 #include "widgets/view/rect.h"
+
+//#define DEBUG
 
 constexpr auto ROI{ "ROI" };
 constexpr auto NAME{ "Name" };
@@ -33,10 +34,28 @@ Painter::Painter(QJsonObject const& config, GraphicsScene *graphicsScene, Graphi
 
 void Painter::onPaintOnBoard(qint32 x, qint32 y)
 {
+	#ifdef DEBUG
 	Logger->debug("Painter::onPaintOnBoard()");
+	#endif
+	onPaintOnBoardInColor(x, y, m_painterSettings.m_color);
+}
+
+void Painter::onPaintBackground(qint32 x, qint32 y)
+{
+	#ifdef DEBUG
+	Logger->debug("Painter::onPaintBackground()");
+	#endif
+	onPaintOnBoardInColor(x, y, m_painterSettings.m_colorBackground);
+}
+
+void Painter::onPaintOnBoardInColor(qint32 x, qint32 y, QColor color)
+{
+	#ifdef DEBUG
+	Logger->debug("Painter::onPaintOnBoardInColor()");
+	#endif
 	if (m_painterSettings.m_penSize == 1)
 	{
-		m_paintImage.setPixelColor(x, y, m_painterSettings.m_color);
+		m_paintImage.setPixelColor(x, y, color);
 	}
 	else if (m_painterSettings.m_penSize > 1 && m_painterSettings.m_penSize < 20)
 	{
@@ -45,7 +64,7 @@ void Painter::onPaintOnBoard(qint32 x, qint32 y)
 		{
 			for (int zy = -it; zy <= it; zy++)
 			{
-				m_paintImage.setPixelColor(x + zx, y + zy, m_painterSettings.m_color);
+				m_paintImage.setPixelColor(x + zx, y + zy, color);
 			}
 		}
 	}
@@ -56,43 +75,57 @@ void Painter::onPaintOnBoard(qint32 x, qint32 y)
 	m_paintPixmap->setPixmap(QPixmap::fromImage(m_paintImage));
 }
 
-void Painter::onLoadImage(QString dir, QString name)
+void Painter::onLoadImage(int id)
 {
-	m_name = name;
-	QString m_fileNameWithPath = dir + m_split + name;
+	m_id = id;
+	m_name = m_dataMemory->m_names[id];
+	QString m_fileNameWithPath = m_dataMemory->m_paths[id] + m_dataMemory->m_filenames[id];
 	Painter::clearScene();
+	#ifdef DEBUG
 	Logger->debug("Painter::onLoadImage({})",m_fileNameWithPath.toStdString());
+	#endif
+
 	QPixmap test;
 	test.load(m_fileNameWithPath);
 	addImageToScene(test);
 }
 
-void Painter::onLoadRois(QString dir, QString name)
+void Painter::onLoadRois(int id)
 {
-	QString _fileNameWithPath = dir + m_split + name + ".json";
+	QString _fileNameWithPath = m_dataMemory->m_roiPaths[id]+m_dataMemory->m_roiNames[id];
+	#ifdef DEBUG
 	Logger->debug("ImageLoader::loadRois() _fileNameWithPath:{}", _fileNameWithPath.toStdString());
-
+	#endif
 	std::shared_ptr<ConfigReader> cR = std::make_shared<ConfigReader>();
 
 	QJsonObject jObject;
 	if (!cR->readConfig(_fileNameWithPath, jObject))
 	{
-		spdlog::error("File {} read confif failed", _fileNameWithPath.toStdString());
+		spdlog::error("File {} read config failed", _fileNameWithPath.toStdString());
+		emit(updatStatus(m_id, "ROI not loaded"));
 	}
-
-	QJsonArray jROI = jObject[ROI].toArray();
-
-	Logger->debug("ImageLoader::loadRois() jROI.size():{}", jROI.size());
-	Painter::addRoisToScene(jROI);
+	else
+	{
+		QJsonArray jROI = jObject[ROI].toArray();
+		#ifdef DEBUG
+		Logger->debug("ImageLoader::loadRois() jROI.size():{}", jROI.size());
+		#endif
+		Painter::addRoisToScene(jROI);
+		emit(updatStatus(m_id, "OK"));
+	}
 }
 
 void Painter::clearScene()
 {
 	QList<QGraphicsItem*> items = m_graphicsScene->items(Qt::DescendingOrder);
-	Logger->trace("Painter::clearScene() size:{}", items.size());
+	#ifdef DEBUG
+	Logger->debug("Painter::clearScene() size:{}", items.size());
+	#endif
 	for (int i = 0; i < items.size(); i++)
 	{
-		Logger->trace("Painter::clearScene() type:{}", items[i]->type());
+		#ifdef DEBUG
+		Logger->debug("Painter::clearScene() type:{}", items[i]->type());
+		#endif
 		if (items[i]->type() == m_imageType || items[i]->type() == m_paintType)
 		{
 			GraphicsPixmapItem* cast = dynamic_cast<GraphicsPixmapItem*>(items[i]);
@@ -111,7 +144,9 @@ static cv::Mat qimage_to_mat_ref(QImage &img, int format)
 void Painter::deleteRois()
 {
 	QList<QGraphicsItem*> items = m_graphicsScene->items(Qt::DescendingOrder);
-	Logger->trace("Painter::onItemChanged() size:{}", items.size());
+	#ifdef DEBUG
+	Logger->debug("Painter::deleteRois() size:{}", items.size());
+	#endif
 	for (int i = 0; i < items.size(); i++)
 	{
 		if (items[i]->type() == m_roiType) // Just ROI object:
@@ -130,24 +165,30 @@ void Painter::onSetCurrentPaintFolder(QString imageFolder, QString paintFolder, 
 	m_currentJsonDirectory = jsonDirectory;
 }
 
+void Painter::onUpdateFile()
+{
+	emit(updateFileFromId(m_id));
+}
+
 void Painter::onSaveRois()
 {
-	Logger->trace("View::onSaveRois()");
-	//Logger->trace("Painter::onSaveRois({}, {})", dir.toStdString(), name.toStdString());
-	//QString m_fileNameWithPath = dir + m_split + name + ".json";
+	
 	const QString m_fileNameWithPath = m_dataMemory->m_roiPaths[m_id] + m_dataMemory->m_roiNames[m_id];
-	Logger->trace("View::onSaveRois() m_fileNameWithPath:{}",m_fileNameWithPath.toStdString());
+	#ifdef DEBUG
+	Logger->debug("View::onSaveRois() m_fileNameWithPath:{}",m_fileNameWithPath.toStdString());
+	#endif
 	QJsonArray _ROIArray;
 	std::vector<QJsonArray> _arrays;
 
 	for (qint32 color = 0; color < m_painterSettings.m_colors.size(); color++)
 	{
-		//_counter.push_back(0);
 		_arrays.push_back(QJsonArray());
 	}
 
 	QList<QGraphicsItem*> items = m_graphicsScene->items(Qt::DescendingOrder);
-	spdlog::trace("View::onSaveRois() size:{}", items.size());
+	#ifdef DEBUG
+	spdlog::debug("View::onSaveRois() size:{}", items.size());
+	#endif
 	for (int i = 0; i < items.size(); i++)
 	{
 		QRectF rect = items[i]->boundingRect();
@@ -160,8 +201,9 @@ void Painter::onSaveRois()
 		int sizeRoi = qAbs(width / 2) * qAbs(height / 2);
 
 		QSize size = QSize(width, height);
-		spdlog::trace("items size:{}x{}x{}x{}", x, y, size.width(), size.height());
-
+		#ifdef DEBUG
+		spdlog::debug("items size:{}x{}x{}x{}", x, y, size.width(), size.height());
+		#endif
 		if (items[i]->type() == m_roiType)
 		{
 			GraphicsRectItem* cast = dynamic_cast<GraphicsRectItem*>(items[i]);
@@ -187,12 +229,12 @@ void Painter::onSaveRois()
 			}
 		}
 	}
+	#ifdef DEBUG
 	qDebug() << "_ROIArray:" << _ROIArray;
-
+	#endif
 	QJsonObject json{};
 	json.insert(ROI, _ROIArray);
 	auto test = QJsonDocument(json).toJson(QJsonDocument::Indented);
-	//QString nameBest = m_path + m_filename + m_prefix;
 	QFile jsonFile(QString::fromStdString(m_fileNameWithPath.toStdString()));
 	jsonFile.open(QFile::WriteOnly);
 	jsonFile.write(test);
@@ -200,20 +242,18 @@ void Painter::onSaveRois()
 
 	QString possibleError;
 	QJsonArray jROI = json[ROI].toArray();
+	#ifdef DEBUG
 	qDebug() << "jROI:" << jROI;
-	Logger->trace("View::onSaveRois() done");
+	Logger->debug("View::onSaveRois() done");
+	#endif
 }
-
 
 void Painter::onSavePaint()
 {
-	Logger->trace("View::onSavePaint()");
-	//Logger->trace("Painter::onSavePaint({}, {})", dir.toStdString(), name.toStdString());
-	//QString m_fileNameWithPath = dir + m_split + name + ".png";
+	#ifdef DEBUG
+	Logger->debug("View::onSavePaint()");
+	#endif
 	cv::Mat cleanData = cv::Mat(m_paintImage.height(), m_paintImage.width(), CV_8UC1, cv::Scalar(0));
-
-	Painter::onSaveRois();
-	//onCreateRois();
 
 	int counter{0};
 
@@ -239,20 +279,26 @@ void Painter::onSavePaint()
 	m_dataMemory->m_gt[m_id] = cleanData;
 	const QString m_fileNameWithPath = m_dataMemory->gtPaths(m_id) + m_dataMemory->filenames(m_id);
 	cv::imwrite(m_fileNameWithPath.toStdString(), cleanData);
-	Logger->trace("View::onSavePaint(): m_fileNameWithPath:{}", m_fileNameWithPath.toStdString());
-	emit(updateFileFromId(m_id));
+	#ifdef DEBUG
+	Logger->debug("View::onSavePaint(): m_fileNameWithPath:{}", m_fileNameWithPath.toStdString());
+	#endif
 }
 
 void Painter::onCreateRois()
 {
 	Painter::deleteRois();
 	QJsonArray _array;
-	Logger->trace("Painter::onCreateRois()");
+	#ifdef DEBUG
+	Logger->debug("Painter::onCreateRois()");
+	#endif
 	for (int color = 0; color < m_painterSettings.m_colors_foreground.size(); color++)
 	{
-		Logger->trace("Painter::onCreateRois() color:{}", color);
+		#ifdef DEBUG
+		Logger->debug("Painter::onCreateRois() color:{}", color);
 		qDebug() <<m_painterSettings.m_colors_foreground[color];
 		qDebug() <<m_painterSettings.m_colorHash[m_painterSettings.m_colors_foreground[color]];
+		#endif
+		
 
 		cv::Mat cleanData = cv::Mat(m_paintImage.height(), m_paintImage.width(), CV_8UC1,cv::Scalar(0));
 		for (int i = 0; i < m_paintImage.width(); i++)
@@ -267,25 +313,25 @@ void Painter::onCreateRois()
 		}
 		QJsonArray contoursArray{};
 		m_contour.findContours(cleanData, contoursArray, m_painterSettings.m_colors_foreground[color]);
-
-		//void Contour::findContours(cv::Mat & canny_output, QJsonArray & contoursArray, QString label)
 		for(int i = 0 ; i < contoursArray.size() ; i++)
 		{
 			_array.append(contoursArray[i]);
 		}
 
-		Logger->trace("Painter::addRoisToScene()");
 		QString _name = QString::number(color) + "_CrateRois.png";
 		cv::imwrite(_name.toStdString(), cleanData);
-		//m_contour.findContours()
-		
 	}
 	Painter::addRoisToScene(_array);
+	#ifdef DEBUG
+	Logger->debug("Painter::onCreateRois() done");
+	#endif
 }
 
 void Painter::addRoisToScene(QJsonArray contoursArray)
 {
-	Logger->warn("contoursArray.size:{}", contoursArray.size());
+	#ifdef DEBUG
+	Logger->debug("Painter::addRoisToScene(contoursArray) contoursArray.size:{}", contoursArray.size());
+	#endif
 	emit(clearList());
 
 	for (unsigned int i = 0; i < contoursArray.size(); i++)
@@ -294,19 +340,28 @@ void Painter::addRoisToScene(QJsonArray contoursArray)
 		QString name = obj[NAME].toString();
 		int size = obj[SIZE_ROI].toInt();
 		QRectF tempRectToText = QRectF(obj[X].toInt(), obj[Y].toInt(), obj[WIDTH].toInt(),obj[HEIGHT].toInt());
-		qDebug() << "tempRectToText:" << tempRectToText;
 		QColor _color = m_painterSettings.m_colorHash[name];
-		Logger->warn("Painter::addRoisToScene()  add GraphicsRectItem:{} name:{}", i, name.toStdString());
+		
+		#ifdef DEBUG
+		Logger->debug("Painter::addRoisToScene()  add GraphicsRectItem:{} name:{}", i, name.toStdString());
+		qDebug() << "tempRectToText:" << tempRectToText;
 		qDebug() << "color:" << _color;
+		#endif
+		
 		GraphicsRectItem * itemG = new GraphicsRectItem(_color, name, tempRectToText, m_roiType);
 		m_graphicsScene->addItem(itemG);
 		emit(addList(i, name, size, true));
 	}
+	#ifdef DEBUG
+	Logger->debug("Painter::addRoisToScene() done");
+	#endif
 }
 
 void Painter::onAddRectToScene(QPointF startPoint, QPointF stopPoint, bool dialog, QString name)
 {
-	spdlog::trace("View::onAddRectToScene()");
+	#ifdef DEBUG
+	Logger->debug("Painter::onAddRectToScene()");
+	#endif
 	qreal x = 0;
 	qreal y = 0;
 	qreal width = 1;
@@ -361,19 +416,6 @@ void Painter::onAddRectToScene(QPointF startPoint, QPointF stopPoint, bool dialo
 				QColor color = QColor::fromRgb(0, 0, 0, 0);
 				GraphicsRectItem* rectItem = new GraphicsRectItem(color, tempStr, tempRectToText,m_roiType);
 				m_graphicsScene->addItem(rectItem);
-				/*
-				SelectText* selectText = new SelectText(color, tempStr, tempRectToText, m_graphicsScene, ret);
-				selectText->setRect(tempRectToText);
-				selectText->setEnabled(true);
-				selectText->setVisible(true);
-				m_graphicsScene->addItem(selectText);*/
-				/*
-				listInfo _info{ ret, tempStr, 10, true };
-				itemOnScene _item{ _info };
-				m_tempVector->addItem(ret, _item); // m_tempVector->
-				qint32 _size = qAbs(width / 2) * qAbs(heigt / 2);
-				const listInfo list{ ret, tempStr, _size, true };
-				emit(addList(list));*/
 			}
 		}
 		if (dialogCode == QDialog::Rejected)
@@ -394,33 +436,29 @@ void Painter::onAddRectToScene(QPointF startPoint, QPointF stopPoint, bool dialo
 			selectText->setRect(tempRectToText);
 			selectText->setVisible(true);
 			m_graphicsScene->addItem(selectText);
-			/*
-			listInfo _info{ ret, name, 10, true };
-			itemOnScene _item{ _info };
-			m_tempVector->addItem(ret, _item);*/
 		}
 	}
 }
 
 void Painter::addImageToScene(QPixmap image)
 {
-	Logger->trace("Painter::addImageToScene()");
+	#ifdef DEBUG
+	Logger->debug("Painter::addImageToScene()");
+	#endif
 	m_pixmap = static_cast<GraphicsPixmapItem*>(m_graphicsScene->addPixmap(image));
-	
-	//m_pixmap = new GraphicsPixmapItem();
-	// TODO: m_pixmap->configure(m_imageType);
-	Logger->trace("Painter::addImageToScene() m_pixmap.type:{}",m_pixmap->type());
+	#ifdef DEBUG
+	Logger->debug("Painter::addImageToScene() m_pixmap.type:{}",m_pixmap->type());
+	#endif
 	m_pixmap->setEnabled(true);
 	m_pixmap->setVisible(true);
 	m_pixmap->setOpacity(1.0);
 	m_pixmap->setAcceptHoverEvents(true);
 	m_pixmap->setAcceptTouchEvents(true);
 	m_pixmap->setZValue(-2);
-	//m_pixmap->update();
-	//m_graphicsScene->addPixmap(image);
 	m_pixmap->update();
-	Logger->trace("Painter::addImageToScene() before configure: m_pixmap.type:{}",m_pixmap->type());
-
+	#ifdef DEBUG
+	Logger->debug("Painter::addImageToScene() before configure: m_pixmap.type:{}",m_pixmap->type());
+	#endif
 	m_image = image.toImage();
 	m_paintImage = image.toImage();
 
@@ -434,31 +472,33 @@ void Painter::addImageToScene(QPixmap image)
 	
 	QPixmap whiteBoardPixmap = QPixmap::fromImage(m_paintImage);
 	m_paintPixmap = static_cast<GraphicsPixmapItem*>(m_graphicsScene->addPixmap(whiteBoardPixmap));
-	//m_paintPixmap = new GraphicsPixmapItem();
-	// TODO: m_paintPixmap->configure(m_paintType);
-	Logger->trace("Painter::addImageToScene() m_paintPixmap.type:{}",m_paintPixmap->type());
 	m_paintPixmap->setEnabled(true);
 	m_paintPixmap->setVisible(true);
 	m_paintPixmap->setOpacity(0.5);
 	m_paintPixmap->setAcceptHoverEvents(true);
 	m_paintPixmap->setAcceptTouchEvents(true);
 	m_paintPixmap->setZValue(-1);
-	//m_graphicsScene->addPixmap(whiteBoardPixmap);
 	m_paintPixmap->update();
-	Logger->trace("Painter::addImageToScene() before configure: m_paintPixmap.type:{}",m_paintPixmap->type());
-	
+	#ifdef DEBUG
+	Logger->debug("Painter::addImageToScene() m_paintPixmap.type:{}",m_paintPixmap->type());
+	Logger->debug("Painter::addImageToScene() before configure: m_paintPixmap.type:{}",m_paintPixmap->type());
+	#endif
 	emit(updateView());
-	Logger->trace("Painter::addImageToScene() done");
+	#ifdef DEBUG
+	Logger->debug("Painter::addImageToScene() done");
+	#endif
 }
 
 void Painter::onLoadPaints(int id)
 {
-	m_id = id;
-	Logger->trace("Painter::onLoadPaint()");
-
+	#ifdef DEBUG
+	Logger->debug("Painter::onLoadPaint()");
+	#endif
 	cv::Mat& image = m_dataMemory->gt(id);
 	
-	Logger->trace("Painter::onLoadPaint() image ({}x{}x{})", image.cols, image.rows, image.channels());
+	#ifdef DEBUG
+	Logger->debug("Painter::onLoadPaint() image ({}x{}x{})", image.cols, image.rows, image.channels());
+	#endif
 	if(image.empty())
 	{
 		Logger->error("Painter::onLoadPaint() image cant be loaded");
@@ -486,39 +526,51 @@ void Painter::onLoadPaints(int id)
 		}
 	}
 	Painter::onPaintColorsFinish();
-	Logger->trace("Painter::onLoadPaint() done");
+	#ifdef DEBUG
+	Logger->debug("Painter::onLoadPaint() done");
+	#endif
 }
 
 void Painter::onPaintColors(qint32 x, qint32 y, QColor color)
 {
-	//Logger->trace("Painter::onPaintColors()");
 	m_paintImage.setPixelColor(x, y, color);
 }
 
 void Painter::onPaintColorsFinish()
 {
-	Logger->trace("Painter::onPaintColorsFinish()");
+	#ifdef DEBUG
+	Logger->debug("Painter::onPaintColorsFinish()");
+	#endif
 	m_paintPixmap->setPixmap(QPixmap::fromImage(m_paintImage));
 	emit(updateView());
 }
 
 void Painter::onChangeColor(QColor color)
 {
+	#ifdef DEBUG
+	Logger->debug("Painter::onChangeColor()");
 	qDebug() << "Painter::onChangeColor:" << color;
+	#endif
 	m_painterSettings.m_color = color;
 }
 
-void Painter::onChangeOldColor(QString name, QColor color)
+int Painter::onChangeOldColor(QString name, QColor color)
 {
+	#ifdef DEBUG
+	Logger->debug("Painter::onChangeOldColor()");
 	qDebug() << "Painter::onChangeOldColor:" << color;
+	#endif
+	
 	// Check if color exist:
 	for (qint32 i = 0; i < m_painterSettings.m_colors.size(); i++)
 	{
+		#ifdef DEBUG
 		qDebug() << "_painterSettings.m_colorHash[m_painterSettings.m_colors[i]]" << m_painterSettings.m_colorHash[m_painterSettings.m_colors[i]];
 		qDebug() << "color" << color;
+		#endif
 		if(m_painterSettings.m_colorHash[m_painterSettings.m_colors[i]].rgb() == color.rgb())
 		{
-			return;
+			return false;
 		}
 	}
 	
@@ -538,29 +590,39 @@ void Painter::onChangeOldColor(QString name, QColor color)
 	m_painterSettings.m_colorHash[name] = color;
 	
 	Painter::onPaintColorsFinish();
-	return;
+	return true;
 }
 
 void Painter::onChangePenSize(qint32 size)
 {
+	#ifdef DEBUG
+	Logger->debug("Painter::onChangePenSize()");
 	qDebug() << "Painter::onChangePenSize:" << size;
+	#endif
+	
 	m_painterSettings.m_penSize = size;
 }
 
 void Painter::setOpacity(qreal scaleOpacity)
 {
-	Logger->trace("Painter::setOpacity() set scale to:{}", scaleOpacity);
+	#ifdef DEBUG
+	Logger->debug("Painter::setOpacity() set scale to:{}", scaleOpacity);
+	#endif
 	m_paintPixmap->setOpacity(scaleOpacity);
 }
 
 void Painter::setOpacityROI(qreal scaleOpacity)
 {
-	Logger->trace("Painter::setOpacityROI() set scale to:{}", scaleOpacity);
+	#ifdef DEBUG
+	Logger->debug("Painter::setOpacityROI() set scale to:{}", scaleOpacity);
+	#endif
 	m_pixmap->setOpacity(scaleOpacity);
 }
 
 void Painter::setOpacityImage(qreal scaleOpacity)
 {
-	Logger->trace("Painter::setOpacityImage() set scale to:{}", scaleOpacity);
+	#ifdef DEBUG
+	Logger->debug("Painter::setOpacityImage() set scale to:{}", scaleOpacity);
+	#endif
 	m_pixmap->setOpacity(scaleOpacity);
 }

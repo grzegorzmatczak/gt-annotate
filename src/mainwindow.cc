@@ -3,6 +3,7 @@
 #include <QtWidgets>
 
 #define THREADS 8
+//#define DEBUG
 
 constexpr auto NAME{ "Name" };
 constexpr auto GENERAL{ "General" };
@@ -12,12 +13,16 @@ constexpr auto DATASET{ "Dataset" };
 
 MainWindow::MainWindow()
 {
-	Logger->trace("MainWindow::MainWindow()");
+	#ifdef DEBUG
+	Logger->debug("MainWindow::MainWindow()");
+	#endif
 }
 
 MainWindow::MainWindow(QJsonObject const& a_config)
 {
-	Logger->trace("MainWindow::MainWindow()");
+	#ifdef DEBUG
+	Logger->debug("MainWindow::MainWindow(a_config)");
+	#endif
 	MainWindow::configure(a_config);
 }
 
@@ -25,7 +30,6 @@ void MainWindow::configure(QJsonObject const& a_config)
 {
 	QJsonObject jDataset = a_config[DATASET].toObject();
 	m_dataMemory = new DataMemory();
-	
 
 	createMenus();
 	setupView(a_config);
@@ -35,14 +39,14 @@ void MainWindow::configure(QJsonObject const& a_config)
 
 void MainWindow::setupMainWidget() 
 {
-	Logger->trace("MainWindow::MainWindow() mainLayout:");
+	#ifdef DEBUG
+	Logger->debug("MainWindow::setupMainWidget()");
+	#endif
 	
 	QGridLayout* mainLayout = new QGridLayout;
 	m_view->setMinimumWidth(1000);
 	mainLayout->setContentsMargins(0, 0, 0, 0);
-	//mainLayout->addWidget(menuBar, 0, 0);
 	mainLayout->addWidget(m_view, 0, 0);
-	//mainLayout->addWidget(m_dataWidget, 0, 1);
 	setLayout(mainLayout);
 
 	resize(1600, 600);
@@ -58,7 +62,4 @@ void MainWindow::setupView(QJsonObject const& a_config)
 }
 
 void MainWindow::setupLayout() 
-{
-	Logger->trace("MainWindow::MainWindow() setupLayout");
-}
-
+{}

@@ -16,6 +16,7 @@ class GraphicsScene : public QGraphicsScene
 
 	public:
 		void onPaintWhiteBoard(qreal x, qreal y);
+		void onPaintWhiteBoardBackground(qreal x, qreal y);
 		QRectF transformPos(QRectF pos);
 		void resetScene();
 		void setMode(uiMode mode);
@@ -26,6 +27,7 @@ class GraphicsScene : public QGraphicsScene
 		void addRectToScene(QPointF startPoint, QPointF stopPoint, bool dialog, QString name);
 		void updateView();
 		void paintWhiteBoard(qint32 x, qint32 y);
+		void paintWhiteBoardBackground(qint32 x, qint32 y);
 		void handleDrawing(QPointF point);
 		void handleDrawingMouseRelease(QPointF point);
 		void setActualPos(QPointF point);

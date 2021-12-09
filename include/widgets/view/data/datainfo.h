@@ -11,22 +11,22 @@
 
 struct data
 {
-    cv::Mat image;
-    QString name;
-    QString path;
-    int changedPixel;
+	cv::Mat image;
+	QString name;
+	QString path;
+	int changedPixel;
 	int sizeOfROI;
 };
 
 class DataInfo
 {
 	public:
-        explicit DataInfo();
+		explicit DataInfo();
 		explicit DataInfo(const QJsonObject &a_config);
-        bool addImage(QString path, QString filename);
+		bool addImage(QString path, QString filename);
 
-    private:
-        std::vector<data> m_data;
+	private:
+		std::vector<data> m_data;
 
 };
 

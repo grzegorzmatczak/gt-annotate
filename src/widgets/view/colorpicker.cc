@@ -1,5 +1,7 @@
 #include "widgets/view/colorpicker.h"
 
+//#define DEBUG
+
 constexpr auto NAME{ "Name" };
 constexpr auto COLORS_FOREGROUND{ "ColorsForeground" };
 constexpr auto COLORS_BACKGROUND{ "ColorsBackground" };
@@ -23,7 +25,6 @@ int ColorPicker::addColors(QString color)
 	for (int i = 0; i < colors.size(); i++)
 	{
 		auto colorsIter = colors[i].toObject();
-		//colorsIter[NAME].toString();
 		qint32 r = colorsIter[R].toInt();
 		qint32 g = colorsIter[G].toInt();
 		qint32 b = colorsIter[B].toInt();
@@ -57,7 +58,11 @@ ColorPicker::ColorPicker(QJsonObject const &a_config, QWidget *parent)
 
 	connect(m_colorPenComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
 		emit(changeColor(m_colorPenComboBox->itemData(index, Qt::DecorationRole).value<QColor>()));
+		
+		#ifdef DEBUG
 		qDebug() << "colorPenComboBox:" << m_colorPenComboBox->itemData(index, Qt::DecorationRole);
+		#endif
+
 	});
 
 	QVBoxLayout *Layout = new QVBoxLayout;

@@ -3,6 +3,8 @@
 #include <QDebug>
 #include <QPainter>
 
+//#define DEBUG
+
 constexpr auto NAME{ "Name" };
 constexpr auto COLORS_FOREGROUND{ "ColorsForeground" };
 constexpr auto COLORS_BACKGROUND{ "ColorsBackground" };
@@ -22,6 +24,9 @@ constexpr auto A{ "A" };
 
 ColorPickerWidget::ColorPickerWidget(const QJsonObject &a_config)
 {
+    #ifdef DEBUG
+	Logger->debug("ColorPickerWidget::ColorPickerWidget()");
+	#endif
     this->clear();
     int counter = 0;
 	QJsonArray colors = a_config[COLORS_FOREGROUND].toArray() ;
@@ -31,23 +36,30 @@ ColorPickerWidget::ColorPickerWidget(const QJsonObject &a_config)
     {
         colors.append(colorsBackground[i].toObject());
     }
-
-    qDebug()<< "colors:" << colors;
+    #ifdef DEBUG
+	qDebug()<< "colors:" << colors;
     qDebug()<< "COLORS_BACKGROUND:" << a_config[COLORS_BACKGROUND].toArray();
+	#endif
+    
 	for (int i = 0; i < colors.size(); i++)
 	{
         QListWidgetItem * item = new QListWidgetItem(this);
-        Logger->warn("ColorPickerWidget::ColorPickerWidget() i:{}", i);
 		QJsonObject colorsIter = colors[i].toObject();
+        #ifdef DEBUG
+        Logger->debug("ColorPickerWidget::ColorPickerWidget() i:{}", i);
         qDebug() << "colorsIter:" << colorsIter;
+        #endif
         ColorPickerLabel * label = new ColorPickerLabel(colorsIter);
 		counter++;
         item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
         int row = this->currentRow();
-        Logger->warn("ColorPickerWidget::ColorPickerWidget() row:{}", row);
-        Logger->warn("ColorPickerWidget::ColorPickerWidget() addItem");
         this->addItem(item);
-        Logger->warn("ColorPickerWidget::ColorPickerWidget() setItemWidget");
+        #ifdef DEBUG
+        Logger->debug("ColorPickerWidget::ColorPickerWidget() row:{}", row);
+        Logger->debug("ColorPickerWidget::ColorPickerWidget() addItem");
+        Logger->debug("ColorPickerWidget::ColorPickerWidget() setItemWidget");
+        #endif
+
         this->setItemWidget(item, label);
     }
 }

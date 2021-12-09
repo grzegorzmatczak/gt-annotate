@@ -5,6 +5,10 @@
 
 #include <QDebug>
 #include <QWidget>
+#include <QFile>
+
+//#define DEBUG
+
 class QStandardItemModel;
 class QStandardItem;
 class QJsonObject;
@@ -12,12 +16,13 @@ class QJsonObject;
 DataWidget::DataWidget(DataMemory* dataMemory)
 : m_dataMemory(dataMemory)
 {
+	#ifdef DEBUG
+	Logger->debug("DataWidget::DataWidget()");
+	#endif
     setupModelList();
     setupModel();
 
-    Logger->trace("DataWidget::DataWidget()");
 	m_labelList = new QTreeView();
-    //m_labelList->setModel(modelList);
 	m_labelList->setRootIsDecorated(true);
 	m_labelList->setAlternatingRowColors(true);
 	m_labelList->setSortingEnabled(true);
@@ -28,16 +33,13 @@ DataWidget::DataWidget(DataMemory* dataMemory)
 	m_rightLayout->setContentsMargins(0, 0, 0, 0);
 	m_rightLayout->addWidget(m_labelList);
     setupTable();
-    m_rightLayout->addWidget(proxyView);
-    //m_rightLayout->addWidget(treeWidget);
+    m_rightLayout->addWidget(treeWidget);
     
 	m_rightLayoutContainer = new QWidget;
 	m_rightLayoutContainer->setLayout(m_rightLayout);
 	m_gridLayout = new QGridLayout(this);
 	m_gridLayout->addWidget(m_rightLayoutContainer, 0, 1);
-	this->setLayout(m_gridLayout);
-    //m_dataInfo = new DataInfo();
-    
+	this->setLayout(m_gridLayout); 
 }
 
 void DataWidget::setupModelList()
@@ -51,53 +53,58 @@ void DataWidget::setupModelList()
 	QStandardItem* poListItem = new QStandardItem;
 	poListItem->setCheckable(true);
 	poListItem->setCheckState(Qt::Unchecked);
-
-	//connect(modelList, &QStandardItemModel::itemChanged, this,
-	//	&MainWindow::onItemChanged);
-	//connect(modelList, &QStandardItemModel::itemChanged, view,
-	//	&View::onItemChanged);
 }
 
 void DataWidget::setupModel()
 {
-	model = new QStandardItemModel(0, 3, this);
+	model = new QStandardItemModel(0, 4, this);
     model->setHeaderData(0, Qt::Horizontal, QObject::tr("Id"));
 	model->setHeaderData(1, Qt::Horizontal, QObject::tr("Name"));
 	model->setHeaderData(2, Qt::Horizontal, QObject::tr("Elements"));
-	//model->setHeaderData(2, Qt::Horizontal, QObject::tr("ROI size"));
-	//model->setHeaderData(3, Qt::Horizontal, QObject::tr("ROI number"));
-	//model->setHeaderData(4, Qt::Horizontal, QObject::tr("Status"));
+	model->setHeaderData(3, Qt::Horizontal, QObject::tr("Status"));
 }
 
-void DataWidget::onUpdateFile(int id, QString name, int elements)
+void DataWidget::onUpdateFile(int id, QString name, int elements, QString status)
 {
-	QList<QStandardItem*> items = model->findItems(QString::number(id), Qt::MatchRecursive);
-	Logger->trace("DataWidget::onUpdateFile() items.size():{} id:{}", items.size(), id);
-	for (auto i = 0; i < items.size(); i++)
-    {
-		items[i]->clearData();
-		qint32 row = items[i]->row();
-		model->setData(model->index(row, 0), id);
-		model->setData(model->index(row, 1), name);
-		model->setData(model->index(row, 2), elements);
-	}
-	
+	QTreeWidgetItem * item = treeWidget->currentItem();
+	item->setText(0, QString::number(id));
+	item->setText(1, m_dataMemory->filenames(id));
+	item->setText(2, QString::number(m_dataMemory->gtElements(id)));
+	item->setText(3, status);
+}
+
+void DataWidget::onUpdateStatus(int id, QString status)
+{
+	QTreeWidgetItem * item = treeWidget->currentItem();
+	item->setText(3, status);
 }
 
 void DataWidget::onUpdateFileFromId(int id)
 {
-	Logger->trace("DataWidget::onUpdateFileFromId(id:{})", id);
+	#ifdef DEBUG
+	Logger->debug("DataWidget::onUpdateFileFromId(id:{})", id);
+	#endif
 	m_dataMemory->countGtElements(id);
-	onUpdateFile(id, m_dataMemory->filenames(id), m_dataMemory->gtElements(id));
-	//emit(loadImage(m_dataMemory->paths(id), m_dataMemory->filenames(id)));
-    //emit(loadPaints(id));
+	QString status{"Update"};
+	QTreeWidgetItem * item = treeWidget->currentItem();
+	item->setText(3, status);
+
+	if (!QFile::exists(m_dataMemory->m_roiPaths[id] + m_dataMemory->m_roiNames[id]))
+	{
+		status+="(ROI not loaded)";
+		item->setBackground(0, QColor(125, 0, 0, 100)); 
+	}
+	else
+	{
+		status+="(ROI ok)";
+		item->setBackground(0, QColor(0, 125, 0, 100)); 
+	}
+	onUpdateFile(id, m_dataMemory->filenames(id), m_dataMemory->gtElements(id), status);
 }
 
 void DataWidget::clearModel()
 {
-	Logger->trace("DataWidget::clearModel()");
-	qint32 count = model->rowCount();
-	model->removeRows(0, count);
+	treeWidget->clear();
 }
 
 void DataWidget::clearModelList()
@@ -108,49 +115,80 @@ void DataWidget::clearModelList()
 
 void DataWidget::setupTable()
 {
-    // TODO treeWidget needed?
-    //treeWidget = new TreeWidget();
+	treeWidget = new TreeWidget();
+	treeWidget->setRootIsDecorated(true);
+	treeWidget->setAlternatingRowColors(true);
+	treeWidget->setSortingEnabled(true);
+	treeWidget->setAnimated(true);
+	const QStringList data{"Id","Name","Elements","Status"};
+	treeWidget->setHeaderLabels(data);
+	treeWidget->sortItems(1, Qt::AscendingOrder);
 
-	proxyView = new QTreeView;
-	proxyView->setRootIsDecorated(true);
-	proxyView->setAlternatingRowColors(true);
-	proxyView->setModel(model);
-	proxyView->setSortingEnabled(true);
-	proxyView->setAnimated(true);
-	connect(proxyView, &QTreeView::clicked, this, &DataWidget::open);
+	connect(treeWidget, &TreeWidget::itemClicked, this, &DataWidget::open);
 }
 
 void DataWidget::open()
 {
-	Logger->trace("DataWidget::open()");
-    QModelIndex index = proxyView->currentIndex();
-	const QModelIndex header = index.sibling(index.row(), 0);
-    QVariant id = model->data(header);
-    int idInt = id.toInt();
-    emit(loadImage(m_dataMemory->paths(idInt), m_dataMemory->filenames(idInt)));
-    emit(loadPaints(idInt));
-	onUpdateFile(idInt, m_dataMemory->filenames(idInt), m_dataMemory->gtElements(idInt));
+	int id = treeWidget->currentId();
+	emit(loadImage(id));
+	emit(loadRois(id));
+	emit(loadPaints(id));
+	onUpdateFileFromId(id);
 }
 
 void DataWidget::onLoadDirectory(QString folderName)
 {
-	Logger->trace("DataWidget::importDirImages() folderName:{}", folderName.toStdString());
-    
+    #ifdef DEBUG
+	Logger->debug("DataWidget::importDirImages() folderName:{}", folderName.toStdString());
+	#endif
 	clearModel();
 	
 	QJsonObject paths{{"PathToDataset",folderName},{"ConfigName","config.json"}};
     QJsonObject _config{{"DatasetWin32",paths}, {"DatasetLinux",paths}};
     bool ret = m_dataMemory->configure(_config);
 
-    emit(loadImage(m_dataMemory->paths(0), m_dataMemory->filenames(0)));
-
     for(int i = 0 ; i < m_dataMemory->getSizeClean() ; i++)
     {
-        Logger->trace("DataWidget::importDirImages() insertRow:{}", i);
-        model->insertRow(0);
-        model->setData(model->index(0, 0), i);
-        model->setData(model->index(0, 1), m_dataMemory->filenames(i));
-        model->setData(model->index(0, 2), QString::number(m_dataMemory->gtElements(i)));
+		QTreeWidgetItem * item = new QTreeWidgetItem();
+		QString status{"Load Image ok"};
+		if (!QFile::exists(m_dataMemory->m_roiPaths[i] + m_dataMemory->m_roiNames[i]))
+		{
+			status+="(ROI not loaded)";
+			item->setBackground(0, QColor(125, 0, 0, 100)); 
+		}
+		else
+		{
+			status+="(ROI ok)";
+			item->setBackground(0, QColor(0, 125, 0, 100)); 
+		}
+		
+		item->setText(0, QString::number(i));
+		item->setText(1, m_dataMemory->filenames(i));
+		item->setText(2, QString::number(m_dataMemory->gtElements(i)));
+		item->setText(3, status);
+
+		treeWidget->addTopLevelItem(item);
     }
-	
+}
+
+void DataWidget::onNextFile()
+{
+	treeWidget->onNextFile();
+	DataWidget::open();
+}
+
+void DataWidget::onPrevFile()
+{
+	treeWidget->onPrevFile();
+	DataWidget::open();
+}
+
+void DataWidget::onCopyFromNextFile()
+{
+	treeWidget->onCopyFromNextFile();
+}
+
+void DataWidget::onCopyFromPrevFile()
+{
+	treeWidget->onCopyFromPrevFile();
 }

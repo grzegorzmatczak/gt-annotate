@@ -7,6 +7,8 @@
 #endif
 #include <qmath.h>
 
+//#define DEBUG
+
 
 GraphicsScene::GraphicsScene()
 	: QGraphicsScene()
@@ -21,15 +23,25 @@ QRectF GraphicsScene::transformPos(QRectF pos)
 
 void GraphicsScene::mousePressEvent(QGraphicsSceneMouseEvent* e)
 {
+	#ifdef DEBUG
+	Logger->debug("GraphicsScene::mousePressEvent()");
 	qDebug() << "GraphicsScene::mousePressEvent pos:" << e->pos();
 	qDebug() << "GraphicsScene::mousePressEvent scenePos:" << e->scenePos();
+	#endif
+
 	QGraphicsScene::mousePressEvent(e);
-	Logger->trace("GraphicsScene::mousePressEvent()");
 	if (m_mode == uiMode::Paint && e->buttons() == Qt::LeftButton)
 	{
         qreal xreal = e->scenePos().x();
 		qreal yreal = e->scenePos().y();
 		onPaintWhiteBoard(xreal, yreal);
+		emit(updateView());
+	}
+	if (m_mode == uiMode::Paint && e->buttons() == Qt::RightButton)
+	{
+        qreal xreal = e->scenePos().x();
+		qreal yreal = e->scenePos().y();
+		onPaintWhiteBoardBackground(xreal, yreal);
 		emit(updateView());
 	}
 	else if (m_mode == uiMode::SelectROI && e->buttons() == Qt::LeftButton)
@@ -38,8 +50,6 @@ void GraphicsScene::mousePressEvent(QGraphicsSceneMouseEvent* e)
         qreal yreal = e->scenePos().ry()/10 * 10;
 
 		m_startPoint = e->scenePos(); // Save start pos to save ROI on scene.
-		//setSelectionArea(QPainterPath());
-		//emit(updateView());
 		m_justSelect = false;
 
 		int x = static_cast<int>(xreal);
@@ -55,19 +65,15 @@ void GraphicsScene::mousePressEvent(QGraphicsSceneMouseEvent* e)
 	}
 	else if (m_mode == uiMode::MoveSelect && e->buttons() == Qt::LeftButton)
 	{
-		//qreal xreal = e->scenePos().rx();
-		//qreal yreal = e->scenePos().ry();
-		//int x = static_cast<int>(xreal);
-		//int y = static_cast<int>(yreal);
-		//QPointF point = QPointF(x, y);
-		//e->setScenePos(point);
 		QGraphicsScene::mousePressEvent(e);
 	}
 }
 
 void GraphicsScene::resetScene()
 {
-	Logger->trace("GraphicsScene::resetScene()");
+	#ifdef DEBUG
+	Logger->debug("GraphicsScene::resetScene()");
+	#endif
 	QList<QGraphicsItem*> all = items();
 	for (int i = 0; i < all.size(); i++)
 	{
@@ -81,19 +87,24 @@ void GraphicsScene::resetScene()
 
 void GraphicsScene::mouseMoveEvent(QGraphicsSceneMouseEvent* e)
 {
-	Logger->trace("GraphicsScene::mouseMoveEvent()");
+	#ifdef DEBUG
+	Logger->debug("GraphicsScene::mouseMoveEvent()");
+	#endif
 	if (m_mode == uiMode::Paint && e->buttons() == Qt::LeftButton)
 	{
 		qreal xreal = e->scenePos().rx();
 		qreal yreal = e->scenePos().ry();
 		onPaintWhiteBoard(xreal, yreal);
 	}
+	if (m_mode == uiMode::Paint && e->buttons() == Qt::RightButton)
+	{
+		qreal xreal = e->scenePos().rx();
+		qreal yreal = e->scenePos().ry();
+		onPaintWhiteBoardBackground(xreal, yreal);
+	}
 	else if (m_mode == uiMode::SelectROI)
 	{
-		//qreal x = e->scenePos().x();
-		//qreal y = e->scenePos().y();
 		QGraphicsScene::mouseMoveEvent(e);
-		//emit(updateView());
 	}
 	else if (m_mode == uiMode::MoveSelect)
 	{
@@ -108,9 +119,18 @@ void GraphicsScene::onPaintWhiteBoard(qreal x, qreal y)
 	emit(paintWhiteBoard(rx, ry));
 }
 
+void GraphicsScene::onPaintWhiteBoardBackground(qreal x, qreal y)
+{
+	int rx = static_cast<int>(x);
+	int ry = static_cast<int>(y);
+	emit(paintWhiteBoardBackground(rx, ry));
+}
+
 void GraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
 {
-	Logger->trace("GraphicsScene::mouseReleaseEvent()");
+	#ifdef DEBUG
+	Logger->debug("GraphicsScene::mouseReleaseEvent()");
+	#endif
 	if (m_mode == uiMode::Paint)
 	{
 	}
@@ -118,14 +138,6 @@ void GraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
 	{
 		QPainterPath tmpPath = selectionArea();
 		setSelectionArea(QPainterPath());
-
-		//qreal xreal = round(e->scenePos().rx()/10*10);
-        //qreal yreal = round(e->scenePos().ry()/10*10);
-		//int x = static_cast<int>(xreal);
-		//int y = static_cast<int>(yreal);
-		//QPointF point = QPointF(x, y);
-		//e->setScenePos(point);
-
 		if (tmpPath.isEmpty())
 		{
 		}
@@ -145,7 +157,9 @@ void GraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
 
 void GraphicsScene::setMode(uiMode mode)
 {
-	Logger->trace("GraphicsScene::setMode(mode:{})", mode);
+	#ifdef DEBUG
+	Logger->debug("GraphicsScene::setMode(mode:{})", mode);
+	#endif
 	m_mode = mode;
 }
 

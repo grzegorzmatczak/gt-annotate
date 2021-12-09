@@ -10,7 +10,7 @@ constexpr auto LOG_LEVEL{ "LogLevel" };
 constexpr auto GENERAL{ "General" };
 
 
-void intro();
+void intro(int loglevel);
 
 QJsonObject readConfig();
 
@@ -20,25 +20,27 @@ int main(int argc, char* argv[])
 
 	qRegisterMetaType<QString>("QString");
 	
-	Logger->set_level(static_cast<spdlog::level::level_enum>(0));
+	//Logger->set_level(static_cast<spdlog::level::level_enum>(0));
 	Logger->set_pattern("[%Y-%m-%d] [%H:%M:%S.%e] [%t] [%^%l%$] %v");
 
 	QJsonObject config = readConfig();
 	
-	intro();
-	qint32 messageLevel{ config[GENERAL].toObject()[LOG_LEVEL].toInt() };
-	Logger->info("messageLevel:{}", messageLevel);
+	
+	int messageLevel{ config[GENERAL].toObject()[LOG_LEVEL].toInt() };
+	//Logger->info("messageLevel:{}", messageLevel);
 	Logger->set_level(static_cast<spdlog::level::level_enum>(messageLevel));
-
+	intro(messageLevel);
+	
 	MainWindow window{ config };
 	window.show();
 	return app.exec();
 }
 
-void intro() {
-	Logger->info("\n\n\t\033[1;31mgt-annotate v3.2\033[0m\n"
-		"\tAuthor: Grzegorz Matczak\n"
-		"\t30.11.2021\n");
+void intro(int loglevel) {
+	Logger->info("\n\n\t \033[1;31mgt-annotate v3.3\033[0m \n"
+		"\t Author: Grzegorz Matczak \n"
+		"\t 09.12.2021 \n"
+		"\t log level:{}", loglevel);
 }
 
 QJsonObject readConfig()
@@ -48,7 +50,7 @@ QJsonObject readConfig()
 	QJsonObject jObject;
 	if (!cR->readConfig(configName, jObject))
 	{
-		Logger->error("File {} read confif failed", configName.toStdString());
+		Logger->error("File {} read config failed", configName.toStdString());
 		exit(-1);
 	}
 	return jObject;

@@ -10,7 +10,7 @@
 #include <qmath.h>
 
 class View;
-#define DEBUG FALSE
+//#define DEBUG
 
 GraphicsView::GraphicsView()
 	: QGraphicsView()
@@ -19,8 +19,8 @@ GraphicsView::GraphicsView()
 
 void GraphicsView::wheelEvent(QWheelEvent* e)
 {
-	#if(DEBUG)
-	H_Logger->trace("GraphicsView::wheelEvent()");
+	#ifdef DEBUG
+	Logger->debug("GraphicsView::wheelEvent()");
 	#endif
 	if (e->modifiers() & Qt::ControlModifier)
 	{
@@ -39,9 +39,10 @@ void GraphicsView::wheelEvent(QWheelEvent* e)
 
 bool GraphicsView::drawing()
 {
-#if(DEBUG)
-	H_Logger->trace("GraphicsView::drawing()");
-#endif
+
+	#ifdef DEBUG
+	Logger->debug("GraphicsView::drawing()");
+	#endif
 	if (m_mode == uiMode::Paint)
 		return true;
 	else
@@ -50,9 +51,9 @@ bool GraphicsView::drawing()
 
 bool GraphicsView::editing()
 {
-#if(DEBUG)
-	H_Logger->trace("GraphicsView::editing()");
-#endif
+	#ifdef DEBUG
+	Logger->debug("GraphicsView::editing()");
+	#endif
 	if (m_mode == uiMode::SelectROI)
 		return true;
 	else
@@ -61,27 +62,35 @@ bool GraphicsView::editing()
 
 void GraphicsView::mousePressEvent(QMouseEvent* e)
 {
-	Logger->trace("GraphicsView::mousePressEvent()");
-	m_initPos = e->pos();
+	#ifdef DEBUG
+	Logger->debug("GraphicsView::mousePressEvent()");
 	qDebug() << "GraphicsView::mousePressEvent" << e->pos();
+	#endif
+	
 	QGraphicsView::mousePressEvent(e);
 }
 
  void GraphicsView::setPainterSettings(PainterSettings * painterSettings)
  {
-	Logger->trace("GraphicsView::setPainterSettings()");
+	#ifdef DEBUG
+	Logger->debug("GraphicsView::setPainterSettings()");
+	#endif
 	m_painterSettings = painterSettings;
  }
 
 void GraphicsView::setScale(qreal * scale)
 {
-	Logger->trace("GraphicsView::setScale()");
+	#ifdef DEBUG
+	Logger->debug("GraphicsView::setScale()");
+	#endif
 	m_scale = scale;
 }
 
 void GraphicsView::mouseMoveEvent(QMouseEvent* event)
 {
-	Logger->trace("GraphicsView::mouseMoveEvent()");
+	#ifdef DEBUG
+	Logger->debug("GraphicsView::mouseMoveEvent()");
+	#endif
 	m_point = event->pos();
 	viewport()->repaint();
 	QGraphicsView::mouseMoveEvent(event);

@@ -8,6 +8,8 @@
 #include <QRectF>
 #include <QString>
 
+//#define DEBUG
+
 constexpr auto NAME{ "Name" };
 constexpr auto WIDTH{ "Width" };
 constexpr auto HEIGHT{ "Height" };
@@ -52,7 +54,9 @@ void Contour::configure(const QJsonObject &a_config)
 
 void Contour::createCannyImage(cv::Mat &opencv_img, cv::Mat &canny_output)
 {
-	Logger->trace("Contour::createCannyImage()");
+	#ifdef DEBUG
+	Logger->debug("Contour::createCannyImage()");
+	#endif
 	cv::dilate(opencv_img, opencv_img, cv::Mat(), cv::Point(-1, -1), m_dilateCounter, 1, 1);
 	cv::erode(opencv_img, opencv_img, cv::Mat(), cv::Point(-1, -1), m_erodeCounter, 1, 1);
 	cv::Canny(opencv_img, canny_output, m_treshCanny, m_treshCanny*2 );
@@ -60,9 +64,11 @@ void Contour::createCannyImage(cv::Mat &opencv_img, cv::Mat &canny_output)
 
 void Contour::findContours(cv::Mat & input, QJsonArray & contoursArray, QString label)
 {
+	#ifdef DEBUG
+	Logger->debug("Contour::FindContours()");
+	#endif
 	cv::Mat canny_output;
 	Contour::createCannyImage(input, canny_output);
-	Logger->trace("Contour::FindContours()");
 	std::vector<std::vector<cv::Point> > contours;
 	std::vector<cv::Vec4i> hierarchy;
 	cv::findContours(input, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE );
@@ -118,8 +124,12 @@ void Contour::findContours(cv::Mat & input, QJsonArray & contoursArray, QString 
 
 		};
 		contoursArray.append(obj);
+		#ifdef DEBUG
+		Logger->debug("Contour::FindContours() obj, contoursArray:");
 		qDebug() << "obj:" << obj;
 		qDebug() << "contoursArray:" << contoursArray;
+		#endif
+		
 	}
 }
 /*

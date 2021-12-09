@@ -23,9 +23,11 @@ class PainterSettings
         std::vector<QString> m_colors_foreground;
         int m_penSize{};
         QColor m_color;
+        QColor m_colorBackground;
     
     private:
         void addrgbColors(QJsonObject json);
+        QColor colorFormJsonObject(QJsonObject json);
         
     public:
         QHash<QString, QColor> m_colorHash;

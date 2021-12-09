@@ -9,7 +9,6 @@
 GraphicsRectItem::GraphicsRectItem(QColor &color, QString text, QRectF rect, int type)
 {
 	this->setRect(rect);
-	//this->setFlags(ItemSendsGeometryChanges | ItemIsSelectable | ItemIsMovable);
 	this->setFlags(ItemIsSelectable);
 	m_penWidth = 0.2;
 	m_rect = rect;
@@ -84,7 +83,7 @@ void GraphicsRectItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
 	painter->setBrush(fillColor);
 	painter->drawRect((rect().x()), (rect().y()), rect().width(), rect().height());
-	painter->save();
+	//painter->save();
 }
 
 void GraphicsRectItem::setPainterAndText(QPainter *painter, int deltax, int deltay, int pixelSize, int penWidth)

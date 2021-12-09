@@ -18,7 +18,6 @@
 #include "widgets/view/graphicsrectitem.h"
 #include "widgets/view/painter.h"
 #include "widgets/view/data/datawidget.h"
-//#include "imageprocessing/contour.h"
 
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
@@ -33,7 +32,7 @@ class View : public QFrame
 	public:
 		explicit View(QJsonObject const &a_config, DataMemory* dataMemory, QFrame *parent = nullptr);
 		QGraphicsView *view() const;
-        void configure(QJsonObject const& a_config, QHash<QString, int>& m_colorInthash, QHash<QString, QColor>& m_colorHash);
+		void configure(QJsonObject const& a_config, QHash<QString, int>& m_colorInthash, QHash<QString, QColor>& m_colorHash);
 
 	public slots:
 		void onSetupMatrix();
@@ -41,8 +40,9 @@ class View : public QFrame
   		void onZoomOut(qint32 delta);
 		void onChangeColor2(QListWidgetItem* item);
 		void onChangeLabel(QListWidgetItem* current, QListWidgetItem* previous);
-		void onLoadImage(QString dir, QString name);
+		void onLoadImage(int id);
 		void onLoadPaints(int id);
+		void onLoadRois(int id);
 
 	signals:
 		void setModePaint();
@@ -50,13 +50,13 @@ class View : public QFrame
 		void setModeMove();
 		void resetScene();
 		void loadDirectory(QString folderName);
-		void loadImage(QString dir, QString name);
+		void loadImage(int id);
 		void loadPaints(int id);
+		void loadRois(int id);
 
 	private slots:
 		void onSetPaint();
 		void onSetMove();
-		void onSetROI();
 		void onLoadDirectory();
 		void setOpacity();
 		void setOpacityROI();
@@ -67,8 +67,10 @@ class View : public QFrame
 		void setupGraphicsView();
 		void setupSliders();
 		void setupLeftToolBar();
+		void setupBottomToolBar();
 		void setupCentralWidget();
 		void creteAction();
+		void creteBottomAction();
 		void onSaveWhiteBoard();
 		void createMenus();
 		void setupDataWidget();
@@ -85,6 +87,7 @@ class View : public QFrame
 		QSlider *m_opacitySliderImage;
 		QSlider *m_zoomSlider;
 		ToolBar* m_leftToolBar;
+		ToolBar* m_bottomToolBar;
 		QHBoxLayout* m_buttonLayout;
 		QToolButton* m_loadButton;
 		QToolButton* m_saveGTbutton;
@@ -108,21 +111,21 @@ class View : public QFrame
 		DataWidget* m_dataWidget;
 
 	private:
-        QString m_targetDirectoryPath;
-
-	private:
 		QAction* action_paint;
 		QAction* action_move;
 		QAction* action_ROI;
 		QAction* action_loadDirectory;
 		QAction* action_saveWhitePixmap;
 		QAction* action_create_roi;
+		QAction* action_nextImage;
+		QAction* action_prevImage;
+		QAction* action_copyNextImage;
+		QAction* action_copyPrevImage;
 
 	private:
 		qreal m_scaleOpacity;
 		qreal m_scaleOpacityROI;
 		qreal m_scaleOpacityImage;
-
 		qreal m_scale;
 
 };

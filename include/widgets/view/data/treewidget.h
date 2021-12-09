@@ -7,8 +7,6 @@
 #include <QJsonObject>
 #include <QWidget>
 
-//#include "widgets/structures.h"
-
 
 class TreeWidget : public QTreeWidget
 {
@@ -16,8 +14,9 @@ class TreeWidget : public QTreeWidget
 	public:
 		explicit TreeWidget(const QJsonObject &a_config);
 		explicit TreeWidget();
-        QString currentDir() const;
-	    QString currentFile() const;
+		int currentId() const;
+		int idFromItem(QTreeWidgetItem *item) const;
+
 	private:
 		void openDirectory();
 
@@ -26,17 +25,18 @@ class TreeWidget : public QTreeWidget
 		void onOpenDialogDirectory();
 		void onItemClicked();
 		void onCopyFromNextFile();
-		void onCopyFromPreviousFile();
+		void onCopyFromPrevFile();
 		void onNextFile();
-        void onPreviousFile();
+		void onPrevFile();
 		void onSaveRoidAndPaint();
 
 	signals:
-		void loadImage(QString dir, QString name);
-		void loadRois(QString dir, QString name);
-		void loadPaint(QString dir, QString name);
-		void saveRois(QString dir, QString name);
-		void savePaint(QString dir, QString name);
+		void clicked();
+		void loadImage(int id);
+		void loadRois(int id);
+		void loadPaint(int id);
+		void saveRois(int id);
+		void savePaint(int id);
 		void setCurrentPaintFolder(QString imageFolder, QString paintFolder, QString jsonDirectory);
 
 	private:

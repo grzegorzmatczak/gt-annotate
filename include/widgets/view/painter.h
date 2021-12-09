@@ -31,41 +31,44 @@ class Painter : public QObject
 		void setOpacity(qreal scaleOpacity);
 		void setOpacityROI(qreal scaleOpacity);
 		void setOpacityImage(qreal scaleOpacity);
+		int onChangeOldColor(QString name, QColor color);
 
-    private:
-	    QJsonObject m_config;
+	private:
+		QJsonObject m_config;
 
 	signals:
 		void updateView();
 		void addList(int id, QString label, int size, bool enabled);
 		void clearList();
 		void updateFileFromId(int id);
+		void updatStatus(int id, QString status);
 
-    private:
+	private:
 		GraphicsView *m_graphicsView;
 		GraphicsScene *m_graphicsScene;
 
-    public slots:
+	public slots:
 		void onPaintOnBoard(qint32 x, qint32 y);
+		void onPaintBackground(qint32 x, qint32 y);
 		void onChangeColor(QColor color);
-		void onChangeOldColor(QString name, QColor color);
 		void onChangePenSize(qint32 size);
 		void onCreateRois();
 		void onSetCurrentPaintFolder(QString imageFolder, QString paintFolder, QString jsonDirectory);
 		void onSavePaint();
 		void onSaveRois();
-		void onLoadImage(QString dir, QString name);
+		void onUpdateFile();
+		void onLoadImage(int id);
 		void onLoadPaints(int id);
-		void onLoadRois(QString dir, QString name);
+		void onLoadRois(int id);
 		void onAddRectToScene(QPointF startPoint, QPointF stopPoint, bool dialog, QString name);
 
-    private:
+	private:
 		void addImageToScene(QPixmap image);
-        void onPaintColorsFinish();
-        void onPaintColors(qint32 x, qint32 y, QColor color);
+		void onPaintColorsFinish();
+		void onPaintColors(qint32 x, qint32 y, QColor color);
 		void deleteRois();
 		void clearScene();
-		
+		void onPaintOnBoardInColor(qint32 x, qint32 y, QColor color);
 		void addRoisToScene(QJsonArray contoursArray);
 
 	private:

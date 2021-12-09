@@ -44,7 +44,7 @@ void DataMemory::loadCleanData()
 	QJsonObject jObject;
 	if (!_configReader->readConfig(configName, jObject))
 	{
-		spdlog::error("File {} read confif failed", configName.toStdString());
+		spdlog::error("File {} read config failed", configName.toStdString());
 		return ;
 	}
 	delete _configReader;

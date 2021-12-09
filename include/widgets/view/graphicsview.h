@@ -14,8 +14,6 @@ class GraphicsView : public QGraphicsView
 
 	public:
 		GraphicsView();
-
-	public:
 		bool drawing();
 		bool editing();
 		void setPainterSettings(PainterSettings * painterSettings);
@@ -33,10 +31,6 @@ class GraphicsView : public QGraphicsView
 	private:
 		qint32 m_mode;
 		qreal* m_scale;
-
-	private:
-		QPointF m_initPos;
-		QPointF m_actualPos;
 
 	protected:
 		void mouseMoveEvent(QMouseEvent *event) override;
