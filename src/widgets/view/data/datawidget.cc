@@ -7,7 +7,9 @@
 #include <QWidget>
 #include <QFile>
 
-//#define DEBUG
+#define DEBUG
+
+constexpr auto ROI{ "ROI" };
 
 class QStandardItemModel;
 class QStandardItem;
@@ -19,20 +21,11 @@ DataWidget::DataWidget(DataMemory* dataMemory)
 	#ifdef DEBUG
 	Logger->debug("DataWidget::DataWidget()");
 	#endif
-    setupModelList();
-    setupModel();
-
-	m_labelList = new QTreeView();
-	m_labelList->setRootIsDecorated(true);
-	m_labelList->setAlternatingRowColors(true);
-	m_labelList->setSortingEnabled(true);
-	m_labelList->setAnimated(true);
-	m_labelList->setSelectionMode(QAbstractItemView::SingleSelection);
-
     m_rightLayout = new QVBoxLayout;
 	m_rightLayout->setContentsMargins(0, 0, 0, 0);
-	m_rightLayout->addWidget(m_labelList);
-    setupTable();
+    DataWidget::setupTreeWidget();
+	DataWidget::setupRoiWidget();
+	m_rightLayout->addWidget(roiWidget);
     m_rightLayout->addWidget(treeWidget);
     
 	m_rightLayoutContainer = new QWidget;
@@ -42,41 +35,40 @@ DataWidget::DataWidget(DataMemory* dataMemory)
 	this->setLayout(m_gridLayout); 
 }
 
-void DataWidget::setupModelList()
-{
-	modelList = new QStandardItemModel(0, 4, this);
-	modelList->setHeaderData(0, Qt::Horizontal, QObject::tr("Id"));
-	modelList->setHeaderData(1, Qt::Horizontal, QObject::tr("Label"));
-	modelList->setHeaderData(2, Qt::Horizontal, QObject::tr("Size"));
-	modelList->setHeaderData(3, Qt::Horizontal, QObject::tr("enabled"));
-
-	QStandardItem* poListItem = new QStandardItem;
-	poListItem->setCheckable(true);
-	poListItem->setCheckState(Qt::Unchecked);
-}
-
-void DataWidget::setupModel()
-{
-	model = new QStandardItemModel(0, 4, this);
-    model->setHeaderData(0, Qt::Horizontal, QObject::tr("Id"));
-	model->setHeaderData(1, Qt::Horizontal, QObject::tr("Name"));
-	model->setHeaderData(2, Qt::Horizontal, QObject::tr("Elements"));
-	model->setHeaderData(3, Qt::Horizontal, QObject::tr("Status"));
-}
-
-void DataWidget::onUpdateFile(int id, QString name, int elements, QString status)
+void DataWidget::onUpdateFile(int id, QString name, int elements, int roi, QString status)
 {
 	QTreeWidgetItem * item = treeWidget->currentItem();
 	item->setText(0, QString::number(id));
-	item->setText(1, m_dataMemory->filenames(id));
-	item->setText(2, QString::number(m_dataMemory->gtElements(id)));
-	item->setText(3, status);
+	item->setText(1, name);
+	item->setText(2, QString::number(elements));
+	item->setText(3, QString::number(roi));
+	item->setText(4, status);
+}
+
+void DataWidget::onAddRoi(int id, QString label, int size, bool enable)
+{
+	#ifdef DEBUG
+	Logger->debug("DataWidget::onAddRoi()");
+	#endif
+	QTreeWidgetItem * item = new QTreeWidgetItem();
+	item->setText(0, QString::number(id));
+	item->setText(1, label);
+	item->setText(2, QString::number(size));
+	item->setCheckState(3, Qt::Unchecked);
+	if(enable)
+		item->setCheckState(3, Qt::Checked);
+	item->setText(3, "checked");
+	roiWidget->addTopLevelItem(item);
+
+	#ifdef DEBUG
+	Logger->debug("DataWidget::onAddRoi() done");
+	#endif
 }
 
 void DataWidget::onUpdateStatus(int id, QString status)
 {
 	QTreeWidgetItem * item = treeWidget->currentItem();
-	item->setText(3, status);
+	item->setText(4, status);
 }
 
 void DataWidget::onUpdateFileFromId(int id)
@@ -87,9 +79,10 @@ void DataWidget::onUpdateFileFromId(int id)
 	m_dataMemory->countGtElements(id);
 	QString status{"Update"};
 	QTreeWidgetItem * item = treeWidget->currentItem();
-	item->setText(3, status);
-
-	if (!QFile::exists(m_dataMemory->m_roiPaths[id] + m_dataMemory->m_roiNames[id]))
+	item->setText(4, status);
+	int roiElements{0};
+	QString _filenameToRoi = m_dataMemory->m_roiPaths[id] + m_dataMemory->m_roiNames[id];
+	if (!QFile::exists(_filenameToRoi))
 	{
 		status+="(ROI not loaded)";
 		item->setBackground(0, QColor(125, 0, 0, 100)); 
@@ -98,37 +91,62 @@ void DataWidget::onUpdateFileFromId(int id)
 	{
 		status+="(ROI ok)";
 		item->setBackground(0, QColor(0, 125, 0, 100)); 
+		std::unique_ptr<ConfigReader> cR = std::make_unique<ConfigReader>();
+
+		QJsonObject jObject;
+		if (!cR->readConfig(_filenameToRoi, jObject))
+		{
+			spdlog::error("File {} read config failed", _filenameToRoi.toStdString());
+		}
+		else
+		{
+			QJsonArray jROI = jObject[ROI].toArray();
+			roiElements = jROI.size();
+		}
 	}
-	onUpdateFile(id, m_dataMemory->filenames(id), m_dataMemory->gtElements(id), status);
+	onUpdateFile(id, m_dataMemory->filenames(id), m_dataMemory->gtElements(id), roiElements, status);
 }
 
-void DataWidget::clearModel()
+void DataWidget::clearTreeWidget()
 {
 	treeWidget->clear();
 }
 
-void DataWidget::clearModelList()
+void DataWidget::clearRoiWidget()
 {
-	qint32 count = modelList->rowCount();
-	modelList->removeRows(0, count);
+	roiWidget->clear();
 }
 
-void DataWidget::setupTable()
+void DataWidget::setupTreeWidget()
 {
 	treeWidget = new TreeWidget();
 	treeWidget->setRootIsDecorated(true);
 	treeWidget->setAlternatingRowColors(true);
 	treeWidget->setSortingEnabled(true);
 	treeWidget->setAnimated(true);
-	const QStringList data{"Id","Name","Elements","Status"};
+	const QStringList data{"Id","Name","Elements","roi","Status"};
 	treeWidget->setHeaderLabels(data);
 	treeWidget->sortItems(1, Qt::AscendingOrder);
 
 	connect(treeWidget, &TreeWidget::itemClicked, this, &DataWidget::open);
 }
 
+void DataWidget::setupRoiWidget()
+{
+	roiWidget = new RoiWidget();
+	roiWidget->setRootIsDecorated(true);
+	roiWidget->setAlternatingRowColors(true);
+	roiWidget->setSortingEnabled(true);
+	roiWidget->setAnimated(true);
+	const QStringList data{"Id","Name","Size","Enabled"};
+	roiWidget->setHeaderLabels(data);
+	roiWidget->sortItems(0, Qt::AscendingOrder);
+	roiWidget->setMaximumHeight(200);
+}
+
 void DataWidget::open()
 {
+	DataWidget::clearRoiWidget();
 	int id = treeWidget->currentId();
 	emit(loadImage(id));
 	emit(loadRois(id));
@@ -141,7 +159,8 @@ void DataWidget::onLoadDirectory(QString folderName)
     #ifdef DEBUG
 	Logger->debug("DataWidget::importDirImages() folderName:{}", folderName.toStdString());
 	#endif
-	clearModel();
+	DataWidget::clearTreeWidget();
+	DataWidget::clearRoiWidget();
 	
 	QJsonObject paths{{"PathToDataset",folderName},{"ConfigName","config.json"}};
     QJsonObject _config{{"DatasetWin32",paths}, {"DatasetLinux",paths}};
@@ -151,7 +170,9 @@ void DataWidget::onLoadDirectory(QString folderName)
     {
 		QTreeWidgetItem * item = new QTreeWidgetItem();
 		QString status{"Load Image ok"};
-		if (!QFile::exists(m_dataMemory->m_roiPaths[i] + m_dataMemory->m_roiNames[i]))
+		int roiElements{0};
+		QString _filenameToRoi = m_dataMemory->m_roiPaths[i] + m_dataMemory->m_roiNames[i];
+		if (!QFile::exists(_filenameToRoi))
 		{
 			status+="(ROI not loaded)";
 			item->setBackground(0, QColor(125, 0, 0, 100)); 
@@ -160,12 +181,28 @@ void DataWidget::onLoadDirectory(QString folderName)
 		{
 			status+="(ROI ok)";
 			item->setBackground(0, QColor(0, 125, 0, 100)); 
+			std::unique_ptr<ConfigReader> cR = std::make_unique<ConfigReader>();
+
+			QJsonObject jObject;
+			if (!cR->readConfig(_filenameToRoi, jObject))
+			{
+				spdlog::error("File {} read config failed", _filenameToRoi.toStdString());
+			}
+			else
+			{
+				QJsonArray jROI = jObject[ROI].toArray();
+				roiElements = jROI.size();
+			}
 		}
 		
 		item->setText(0, QString::number(i));
+		item->setSizeHint(0,QSize(4,4));
 		item->setText(1, m_dataMemory->filenames(i));
 		item->setText(2, QString::number(m_dataMemory->gtElements(i)));
-		item->setText(3, status);
+		item->setSizeHint(2,QSize(10,10));
+		item->setText(3, QString::number(roiElements));
+		item->setSizeHint(3,QSize(10,10));
+		item->setText(4, status);
 
 		treeWidget->addTopLevelItem(item);
     }

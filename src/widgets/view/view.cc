@@ -37,6 +37,7 @@ View::View(QJsonObject const& a_config, DataMemory* dataMemory, QFrame* parent)
 void View::setupDataWidget()
 {
 	m_dataWidget = new DataWidget(m_dataMemory);
+	m_dataWidget->setMaximumWidth(600);
 	connect(this, &View::loadDirectory, m_dataWidget, &DataWidget::onLoadDirectory);
 	connect( m_dataWidget, &DataWidget::loadImage, this, &View::onLoadImage);
 	connect( m_dataWidget, &DataWidget::loadPaints, this, &View::onLoadPaints);
@@ -64,7 +65,9 @@ void View::setupCentralWidget()
 
 	m_vLayout->addWidget(m_bottomToolBar, 1, 2);
 	m_vLayout->addWidget(m_statusBar, 1, 0);
+	m_progressBar->setMaximumWidth(600);
 	m_vLayout->addWidget(m_progressBar, 1, 5);
+
 
 	m_hLayout = new QGridLayout;
 	m_hLayout->addLayout(m_vLayout, 0, 0);
@@ -180,9 +183,17 @@ void View::creteAction()
 	action_saveWhitePixmap->setToolTip("Save all roi on current images");
 	connect(action_saveWhitePixmap, &QAction::triggered, m_painter, &Painter::onSavePaint);
 	connect(action_saveWhitePixmap, &QAction::triggered, m_painter, &Painter::onSaveRois);
-	connect(action_saveWhitePixmap, &QAction::triggered, m_painter, &Painter::onUpdateFile);
+	connect(action_saveWhitePixmap, &QAction::triggered, m_dataWidget, &DataWidget::open);
 	connect(m_painter, &Painter::updateFileFromId, m_dataWidget, &DataWidget::onUpdateFileFromId );
 	connect(m_painter, &Painter::updatStatus, m_dataWidget, &DataWidget::onUpdateStatus );
+	connect(m_painter, &Painter::addRoi, m_dataWidget, &DataWidget::onAddRoi );
+	connect(m_painter, &Painter::clearRoiWidget, m_dataWidget, &DataWidget::clearRoiWidget );
+
+	connect(m_dataWidget->roiWidget, &RoiWidget::itemChanged, m_painter, &Painter::onRoiItemChanged);
+	//connect(m_dataWidget->roiWidget, &RoiWidget::currentItemChanged, m_painter, &Painter::onRoiItemChanged);
+	connect(m_dataWidget->roiWidget, &RoiWidget::itemSelectionChanged, m_painter, &Painter::onRoiItemSelectionChanged);
+	
+	
 	View::onSetPaint();
 }
 

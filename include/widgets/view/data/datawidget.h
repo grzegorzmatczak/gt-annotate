@@ -4,14 +4,13 @@
 #include "widgets/view/data/datainfo.h"
 #include "data.h"
 #include "widgets/view/data/treewidget.h"
-
+#include "widgets/view/data/roiwidget.h"
 #include <QWidget>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QTreeView>
 #include <QVBoxLayout>
 #include <QGridLayout>
-#include <QStandardItemModel>
 
 
 class DataWidget : public QWidget
@@ -20,14 +19,12 @@ class DataWidget : public QWidget
 	public:
 		explicit DataWidget(DataMemory* dataMemory);
 		TreeWidget* treeWidget;
+		RoiWidget* roiWidget;
 
 	private:
-		void setupModelList();
-		void setupTable();
-		void setupModel();
-		void clearModel();
-		void clearModelList();
-		void onUpdateFile(int id, QString name, int elements, QString status);
+		void setupTreeWidget();
+		void setupRoiWidget();
+		void onUpdateFile(int id, QString name, int elements, int roi, QString status);
 
 	public slots:
 		void open();
@@ -38,6 +35,9 @@ class DataWidget : public QWidget
 		void onPrevFile();
 		void onCopyFromNextFile();
 		void onCopyFromPrevFile();
+		void onAddRoi(int id, QString label, int size, bool enable);
+		void clearTreeWidget();
+		void clearRoiWidget();
 
 	signals:
 		void loadImage(int id);
@@ -45,14 +45,9 @@ class DataWidget : public QWidget
 		void loadRois(int id);    
 
 	private:
-		QTreeView* m_labelList;
 		QVBoxLayout* m_rightLayout;
 		QWidget* m_rightLayoutContainer;
 		QGridLayout* m_gridLayout;
-		QWidget* m_rightWidget;
-		QTreeView* proxyView;
-		QStandardItemModel* model;
-		QStandardItemModel* modelList;
 		DataMemory* m_dataMemory;
 
 };

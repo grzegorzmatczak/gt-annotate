@@ -38,10 +38,11 @@ class Painter : public QObject
 
 	signals:
 		void updateView();
-		void addList(int id, QString label, int size, bool enabled);
 		void clearList();
 		void updateFileFromId(int id);
 		void updatStatus(int id, QString status);
+		void addRoi(int id, QString label, int size, bool enable);
+		void clearRoiWidget();
 
 	private:
 		GraphicsView *m_graphicsView;
@@ -61,6 +62,8 @@ class Painter : public QObject
 		void onLoadPaints(int id);
 		void onLoadRois(int id);
 		void onAddRectToScene(QPointF startPoint, QPointF stopPoint, bool dialog, QString name);
+		void onRoiItemChanged(QTreeWidgetItem *item, int column);
+		void onRoiItemSelectionChanged();
 
 	private:
 		void addImageToScene(QPixmap image);
@@ -70,6 +73,7 @@ class Painter : public QObject
 		void clearScene();
 		void onPaintOnBoardInColor(qint32 x, qint32 y, QColor color);
 		void addRoisToScene(QJsonArray contoursArray);
+		void addToRoiWidget(QJsonArray array);
 
 	private:
 		QImage m_paintImage;

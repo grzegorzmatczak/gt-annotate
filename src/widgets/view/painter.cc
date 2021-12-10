@@ -1,7 +1,7 @@
 #include "widgets/view/painter.h"
 #include "widgets/view/rect.h"
 
-//#define DEBUG
+#define DEBUG
 
 constexpr auto ROI{ "ROI" };
 constexpr auto NAME{ "Name" };
@@ -9,6 +9,10 @@ constexpr auto WIDTH{ "Width" };
 constexpr auto HEIGHT{ "Height" };
 constexpr auto X{ "X" };
 constexpr auto Y{ "Y" };
+constexpr auto P1X{ "p1x" };
+constexpr auto P1Y{ "p1y" };
+constexpr auto P2X{ "p2x" };
+constexpr auto P2Y{ "p2y" };
 constexpr auto SIZE_ROI{ "Size" };
 
 
@@ -96,7 +100,7 @@ void Painter::onLoadRois(int id)
 	#ifdef DEBUG
 	Logger->debug("ImageLoader::loadRois() _fileNameWithPath:{}", _fileNameWithPath.toStdString());
 	#endif
-	std::shared_ptr<ConfigReader> cR = std::make_shared<ConfigReader>();
+	std::unique_ptr<ConfigReader> cR = std::make_unique<ConfigReader>();
 
 	QJsonObject jObject;
 	if (!cR->readConfig(_fileNameWithPath, jObject))
@@ -111,7 +115,29 @@ void Painter::onLoadRois(int id)
 		Logger->debug("ImageLoader::loadRois() jROI.size():{}", jROI.size());
 		#endif
 		Painter::addRoisToScene(jROI);
+		//Painter::addToRoiWidget(jROI);
 		emit(updatStatus(m_id, "OK"));
+	}
+}
+
+void Painter::addToRoiWidget(QJsonArray array)
+{
+	#ifdef DEBUG
+	Logger->debug("Painter::addToRoiWidget()");
+	#endif
+	int counter{0};
+	for(auto& arr : array)
+	{
+		QJsonObject arrObj = arr.toObject();
+		QString name = arrObj [NAME].toString();
+		int x = arrObj[X].toInt();
+		int y = arrObj[Y].toInt();
+		int w = arrObj[WIDTH].toInt();
+		int h = arrObj[HEIGHT].toInt();
+		//TODO: p1x, p1y, p2x, p2y Bounding box
+		int size = w*h;
+		emit(addRoi(counter,name,size,"enable"));
+		counter++;
 	}
 }
 
@@ -156,6 +182,7 @@ void Painter::deleteRois()
 			delete cast;
 		}
 	}
+	emit(clearRoiWidget());
 }
 
 void Painter::onSetCurrentPaintFolder(QString imageFolder, QString paintFolder, QString jsonDirectory)
@@ -208,17 +235,16 @@ void Painter::onSaveRois()
 		{
 			GraphicsRectItem* cast = dynamic_cast<GraphicsRectItem*>(items[i]);
 			bool b_saveFlag = true;
-			//QString nameOfRect = cast->text();
+			if(!cast->isEnabled())
+			{
+				b_saveFlag = false;
+			}
+			
 			for (int i = 0 ; i < m_painterSettings.m_colors_background.size() ; i++)
 			{	
-				//if (cast->text() == m_painterSettings.m_colors_background[i])
-				//{
-				//	b_saveFlag = false;
-				//}
 			}
 			if(b_saveFlag)
 			{
-
 				QJsonObject obj{ { X, x },
 					{ Y, y },
 					{ WIDTH, width },
@@ -265,7 +291,7 @@ void Painter::onSavePaint()
 			for (int j = 0; j < m_paintImage.height(); j++)
 			{
 				QGraphicsItem* item = m_graphicsScene->itemAt(QPointF(i, j), QTransform());
-				if (item->type() == m_roiType)
+				if (item->type() == m_roiType && item->isEnabled())
 				{
 					if (m_painterSettings.m_colorHash[color].rgb() == m_paintImage.pixel(i, j))
 					{
@@ -332,8 +358,9 @@ void Painter::addRoisToScene(QJsonArray contoursArray)
 	#ifdef DEBUG
 	Logger->debug("Painter::addRoisToScene(contoursArray) contoursArray.size:{}", contoursArray.size());
 	#endif
-	emit(clearList());
 
+	emit(clearList());
+	int id{0};
 	for (unsigned int i = 0; i < contoursArray.size(); i++)
 	{
 		QJsonObject obj = contoursArray[i].toObject();
@@ -348,13 +375,58 @@ void Painter::addRoisToScene(QJsonArray contoursArray)
 		qDebug() << "color:" << _color;
 		#endif
 		
-		GraphicsRectItem * itemG = new GraphicsRectItem(_color, name, tempRectToText, m_roiType);
+		GraphicsRectItem * itemG = new GraphicsRectItem(_color, name, tempRectToText, m_roiType, id);
 		m_graphicsScene->addItem(itemG);
-		emit(addList(i, name, size, true));
+		emit(addRoi(id, name, size, true));
+		id++;
 	}
 	#ifdef DEBUG
 	Logger->debug("Painter::addRoisToScene() done");
 	#endif
+}
+
+void Painter::onRoiItemSelectionChanged()
+{
+	#ifdef DEBUG
+	Logger->debug("Painter::onRoiItemSelectionChanged()");
+	#endif
+}
+
+void Painter::onRoiItemChanged(QTreeWidgetItem *item, int column)
+{
+	#ifdef DEBUG
+	Logger->debug("Painter::onRoiItemChanged(column:{})", column);
+	#endif
+	if (column == 3) // in 3 column we have enabled checker:
+	{
+		bool _state = true;
+		if (item->checkState(column) == Qt::Unchecked)
+		{
+			_state = false;
+		}
+
+		QList<QGraphicsItem *> items = m_graphicsScene->items(Qt::DescendingOrder);
+		for (int i = 0; i < items.size(); i++)
+		{
+			Logger->debug("View::onItemChanged() items:{}", i);
+			if (items[i]->type() == m_roiType) // Just ROI object:
+			{
+				GraphicsRectItem* cast = dynamic_cast<GraphicsRectItem*>(items[i]);
+
+				#ifdef DEBUG
+				Logger->debug("View::onItemChanged() items:{}.type() == m_roiType", i);
+				Logger->debug("View::onItemChanged() cast->id():{}", cast->id());
+				Logger->debug("View::onItemChanged() item->text(3):{}", item->text(0).toStdString());
+				#endif
+
+				if(cast->id() == item->text(0).toInt())
+				{
+					items[i]->setEnabled(_state);
+					items[i]->setVisible(_state);
+				}
+			}
+		}
+	}
 }
 
 void Painter::onAddRectToScene(QPointF startPoint, QPointF stopPoint, bool dialog, QString name)
@@ -414,7 +486,7 @@ void Painter::onAddRectToScene(QPointF startPoint, QPointF stopPoint, bool dialo
 				QString tempStr = dialog->getLabelName();
 				QRectF tempRectToText = QRectF(x, y, width, heigt);
 				QColor color = QColor::fromRgb(0, 0, 0, 0);
-				GraphicsRectItem* rectItem = new GraphicsRectItem(color, tempStr, tempRectToText,m_roiType);
+				GraphicsRectItem* rectItem = new GraphicsRectItem(color, tempStr, tempRectToText,m_roiType, 0);
 				m_graphicsScene->addItem(rectItem);
 			}
 		}
@@ -428,7 +500,6 @@ void Painter::onAddRectToScene(QPointF startPoint, QPointF stopPoint, bool dialo
 		QRectF tempRectToText = QRectF(x, y, width, heigt);
 		QColor color = QColor::fromRgb(0, 0, 0, 0);
 		qint32 ret = m_tempVector->leaseItem();
-		//qint32 ret = 1;
 		if (ret >= 0)
 		{
 			SelectText* selectText = new SelectText(color, name, tempRectToText, m_graphicsScene, ret);

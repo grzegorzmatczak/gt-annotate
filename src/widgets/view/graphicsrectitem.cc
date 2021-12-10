@@ -6,15 +6,16 @@
 #include <QStyleOptionGraphicsItem>
 
 
-GraphicsRectItem::GraphicsRectItem(QColor &color, QString text, QRectF rect, int type)
+GraphicsRectItem::GraphicsRectItem(QColor &color, QString text, QRectF rect, int type, int id)
+: m_color(color)
+, m_text(text)
+, m_rect(rect)
+, m_type(type)
+, m_id(id)
 {
 	this->setRect(rect);
 	this->setFlags(ItemIsSelectable);
 	m_penWidth = 0.2;
-	m_rect = rect;
-	m_text = (text);
-	m_color = color;
-	m_type = type;
 	m_mouseOver = QColor(0, 0, 0, 50);
 	m_hover = false;
 	m_mouse = false;
