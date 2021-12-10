@@ -24,6 +24,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}")
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/config")
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/test_images")
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/platforms")
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/gtest_files")
@@ -38,19 +39,24 @@ macro(copy_json jsonname)
 	configure_file(${jsonname} ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${jsonname})
 endmacro()
 
-copy_json(config.json)
 copy_json(gtest/test.json)
-copy_json(config.json)
 copy_json(gtest/test.json)
 copy_json(gtest_files/test_dataset1.mp4)
 copy_json(gtest_files/test_dataset1/test1.json)
 copy_json(gtest_files/test_dataset2/test2.json)
+copy_json(config/config.json)
+copy_json(config/postprocess.json)
+
 
 file(COPY test_images DESTINATION ${CMAKE_BINARY_DIR})
 
 include_directories( "include" )
 include_directories( "Utils/include" )
+include_directories( "Dlib/include" )
 include_directories( "DataManagement/include" )
+include_directories( "PostProcessingModules/include" )
+include_directories( "ProcessingModules/include" )
+include_directories( "ProcessingGraph/include" )
 
 if (WIN32)
 	set(QT5_PATH  "C:\\Qt\\5.15.2\\msvc2019_64")
@@ -87,12 +93,25 @@ clone_build(googletest)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 clone_build(spdlog)
+clone_build(dlib)
+
+file(GLOB_RECURSE SRC_DLIB Dlib/src/*.cc)
+file(GLOB_RECURSE HEADERS_DLIB Dlib/include/*.h)
 
 file(GLOB_RECURSE SRC_UTILS Utils/src/*.cc)
 file(GLOB_RECURSE HEADERS_UTILS Utils/include/*.h)
 
 file(GLOB_RECURSE SRC_DATA DataManagement/src/*.cc)
 file(GLOB_RECURSE HEADERS_DATA DataManagement/include/*.h)
+
+file(GLOB_RECURSE SRC_PROCESSING ProcessingModules/src/*.cc)
+file(GLOB_RECURSE HEADERS_PROCESSING ProcessingModules/include/*.h)
+
+file(GLOB_RECURSE SRC_POST_PROCESSING PostProcessingModules/src/*.cc)
+file(GLOB_RECURSE HEADERS_POST_PROCESSING PostProcessingModules/include/*.h)
+
+set(SRC_GRAPH ProcessingGraph/src/graph.cc ProcessingGraph/src/case.cc)
+set(HEADERS_GRAPH ProcessingGraph/include/graph.h ProcessingGraph/include/case.h)
 
 set(SRC_MAIN src/main.cc)
 
@@ -120,12 +139,23 @@ add_library(${PROJECT_NAME}_lib STATIC
 add_library(utils_lib STATIC
 	${SRC_UTILS} ${HEADERS_UTILS})
 
+add_library(dlib_lib STATIC
+	${SRC_DLIB} ${HEADERS_DLIB})
+
 add_library(data_lib STATIC
 	${SRC_DATA} ${HEADERS_DATA})
 
+add_library(graph_lib STATIC
+	${SRC_GRAPH} ${HEADERS_GRAPH})
+
+add_library(processing_lib STATIC
+	${SRC_PROCESSING} ${HEADERS_PROCESSING})
+
+add_library(postprocessing_lib STATIC
+	${SRC_POST_PROCESSING} ${HEADERS_POST_PROCESSING})
+
 add_executable(${PROJECT_NAME}
     ${SRC_MAIN})
-
 
 
 file(GLOB_RECURSE SRC_HEADERS_TEST gtest/*.cc gtest/*.h)
@@ -135,9 +165,14 @@ add_executable(g_test ${SRC_HEADERS_TEST})
 add_executable(g_test_data ${SRC_HEADERS_DATA_TEST})
 
 target_link_libraries(utils_lib ${QT_LIBRARIES} spdlog Qt5::Core Threads::Threads)
+target_link_libraries(graph_lib ${QT_LIBRARIES} spdlog Qt5::Core ${OpenCV_LIBS} Threads::Threads utils_lib processing_lib postprocessing_lib)
 target_link_libraries(data_lib ${QT_LIBRARIES} spdlog Qt5::Core Threads::Threads)
+target_link_libraries(processing_lib ${QT_LIBRARIES} spdlog Qt5::Core ${OpenCV_LIBS} Threads::Threads)
+target_link_libraries(postprocessing_lib ${QT_LIBRARIES} spdlog Qt5::Core ${OpenCV_LIBS} Threads::Threads)
 
-target_link_libraries(${PROJECT_NAME}_lib ${QT_LIBRARIES} ${OpenCV_LIBS} Threads::Threads utils_lib data_lib)
+target_link_libraries(dlib_lib ${QT_LIBRARIES} spdlog Qt5::Core Threads::Threads dlib::dlib processing_lib postprocessing_lib graph_lib)
+
+target_link_libraries(${PROJECT_NAME}_lib ${QT_LIBRARIES} ${OpenCV_LIBS} Threads::Threads utils_lib data_lib dlib_lib)
 target_link_libraries(${PROJECT_NAME}_lib Qt5::Core Qt5::Widgets Qt5::OpenGL)
 
 target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_lib)

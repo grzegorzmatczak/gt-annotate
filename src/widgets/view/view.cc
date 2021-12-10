@@ -19,7 +19,10 @@ View::View(QJsonObject const& a_config, DataMemory* dataMemory, QFrame* parent)
 	#ifdef DEBUG
 	Logger->debug("View::View()");
 	#endif
+}
 
+void View::configure()
+{
 	m_graphicsView->setScale(&m_scale);
 	View::setupCentralWidget();
 	View::onSetupMatrix();
@@ -174,6 +177,7 @@ void View::creteAction()
 	action_loadDirectory->setStatusTip(tr("Load Directory"));
 	action_loadDirectory->setToolTip("Load Directory");
 	connect(action_loadDirectory, &QAction::triggered, this, &View::onLoadDirectory);
+	connect(action_loadDirectory, &QAction::triggered, this, &View::onLoadDirectory);
 	
 	action_create_roi = new QAction(tr("&Create ROI"), this);
 	action_create_roi->setToolTip("create all roi on current images");
@@ -193,8 +197,17 @@ void View::creteAction()
 	//connect(m_dataWidget->roiWidget, &RoiWidget::currentItemChanged, m_painter, &Painter::onRoiItemChanged);
 	connect(m_dataWidget->roiWidget, &RoiWidget::itemSelectionChanged, m_painter, &Painter::onRoiItemSelectionChanged);
 	
+
+	action_train_network = new QAction(tr("&Train Network"), this);
+	action_train_network->setToolTip("Train Network");
+	connect(action_train_network, &QAction::triggered, this, &View::onTrainNetwork);
 	
 	View::onSetPaint();
+}
+
+void View::onTrainNetwork()
+{
+	emit(trainNetwork());
 }
 
 void View::setupBottomToolBar() 
@@ -265,7 +278,10 @@ void View::setupLeftToolBar()
 	m_leftToolBar->addSeparator();
 	m_leftToolBar->addAction(action_create_roi);
 	m_leftToolBar->addAction(action_saveWhitePixmap);
+
 	m_leftToolBar->addSeparator();
+	m_leftToolBar->addAction(action_train_network);
+	
 }
 
 void View::setOpacity()
@@ -377,6 +393,9 @@ void View::onChangeLabel(QListWidgetItem* current, QListWidgetItem* previous)
 
 void View::onLoadDirectory()
 {
+	#ifdef DEBUG
+	Logger->debug("View::onLoadDirectory()");
+	#endif
 	QString targetDirectoryPath = QFileDialog::getExistingDirectory(
 		this, tr("Open Dir"), QDir::currentPath(),
 		QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);

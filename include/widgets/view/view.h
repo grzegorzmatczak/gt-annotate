@@ -43,6 +43,8 @@ class View : public QFrame
 		void onLoadImage(int id);
 		void onLoadPaints(int id);
 		void onLoadRois(int id);
+		void configure();
+		void onTrainNetwork();
 
 	signals:
 		void setModePaint();
@@ -53,6 +55,7 @@ class View : public QFrame
 		void loadImage(int id);
 		void loadPaints(int id);
 		void loadRois(int id);
+		void trainNetwork();
 
 	private slots:
 		void onSetPaint();
@@ -121,6 +124,8 @@ class View : public QFrame
 		QAction* action_prevImage;
 		QAction* action_copyNextImage;
 		QAction* action_copyPrevImage;
+		QAction* action_train_network;
+
 
 	private:
 		qreal m_scaleOpacity;

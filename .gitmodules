@@ -4,3 +4,12 @@
 [submodule "DataManagement"]
 	path = DataManagement
 	url = https://github.com/grzegorzmatczak/DataManagement.git
+[submodule "ProcessingModules"]
+	path = ProcessingModules
+	url = https://github.com/grzegorzmatczak/ProcessingModules.git
+[submodule "PostProcessingModules"]
+	path = PostProcessingModules
+	url = https://github.com/grzegorzmatczak/PostProcessingModules.git
+[submodule "ProcessingGraph"]
+	path = ProcessingGraph
+	url = https://github.com/grzegorzmatczak/ProcessingGraph.git

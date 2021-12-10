@@ -1,0 +1,64 @@
+{
+	"ColorsForeground":
+	[
+		{"Name":"bird","GrayColor":220,"R":255,"G":255,"B":0,"A":100},
+		{"Name":"UAV","GrayColor":85,"R":0,"G":255,"B":255,"A":100},
+		{"Name":"person","GrayColor":170,"R":255,"G":0,"B":0,"A":100},
+		{"Name":"dron","GrayColor":255,"R":0,"G":255,"B":0,"A":100}
+	],
+	"ColorsBackground":
+	[ 
+		
+		{"Name":"background","GrayColor":0,"R":255,"G":255,"B":255,"A":100}
+	],
+	"General":
+	{
+		"LogLevel": 0,
+		"ThreadsMax": 10,
+		"Standalone": false
+	},
+	"Dlib":
+	{
+		"MinibatchSize": 100,
+		"ImageSize": 50,
+		"Queqe": 200,
+		"DnnName" : "dnn",
+		"SynchName": "temp",
+		"UseTwoCUDA" :  false,
+		"LearningRate" : 0.1,
+		"DronType" : "",
+		"GraphType":"",
+		"BoundsType" : "",
+		"DronTypes_ALL" : [ "BLACK", "WHITE","BLACK_WHITE"],
+		"DronTypes2" : [ "BLACK_WHITE", "WHITE","BLACK"],
+		"DronTypes" : [ "CONTRAST_5", "CONTRAST_35","CONTRAST_65","CONTRAST_95"],
+		"GraphTypes":["Graph_dlib_contrast"],
+		"BoundsTypes_all" : [ "Dnn_2Layers_60Con_Multiply09", "Dnn_2Layers_60Con_Dropout09", 
+							"Dnn_2Layer_20Con", "Dnn_2Layers_60Con","Dnn_1Layer_20Con"],
+		"BoundsTypes" : ["Dnn_2Layers_60Con_Dropout09"],
+		"MaxNumEpochs": 200,
+		"SynchTime": 20,
+		"momentum": 0.9,
+		"EpochsToLogging": 10
+	},
+	"ConfigLinux": 
+	{
+		"Dataset": "/home/matczak/repo/Optimization/DlibModule/configs/dataset.json",
+		"Preprocess": "/home/matczak/repo/Optimization/DlibModule/configs/preprocess.json",
+		"Postprocess": "/home/matczak/repo/Optimization/DlibModule/configs/postprocess.json",
+		"Bounds": "/home/matczak/repo/Optimization/DlibModule/configs/bounds.json",
+		"LogsFolder" : "/home/matczak/repo/logs/",
+		"VideoLogsFolder" : "/home/matczak/repo/video_logs/",
+		"DnnFolder" : "/home/matczak/repo/temp_dnn/"
+	},
+	"ConfigWin": 
+	{
+		"Dataset": "C:\\repo\\Optimization\\DlibModule\\configs\\dataset.json",
+		"Preprocess": "C:\\repo\\Optimization\\DlibModule\\configs\\preprocess.json",
+		"Postprocess": "C:\\repo\\Optimization\\DlibModule\\configs\\postprocess.json",
+		"Bounds": "C:\\repo\\Optimization\\DlibModule\\configs\\bounds.json",
+		"LogsFolder" : "C:\\repo\\logs\\",
+		"VideoLogsFolder" : "C:\\repo\\video_logs\\",
+		"DnnFolder" : "C:\\repo\\temp_dnn\\"
+	}
+}
