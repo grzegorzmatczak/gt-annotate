@@ -5,7 +5,6 @@
 #include <QHash>
 
 #include "includespdlog.h"
-#include "listvector.h"
 #include "data.h"
 
 #include "widgets/view/graphicsscene.h"
@@ -45,6 +44,8 @@ class View : public QFrame
 		void onLoadRois(int id);
 		void configure();
 		void onTrainNetwork();
+		void onUseNetwork(cv::Mat image, QRect rect);
+		void onReturnUsedNetwork(cv::Mat image, QRect rect);
 
 	signals:
 		void setModePaint();
@@ -56,10 +57,13 @@ class View : public QFrame
 		void loadPaints(int id);
 		void loadRois(int id);
 		void trainNetwork();
+		void useNetwork(cv::Mat image, QRect rect);
+		//void returnUsedNetwork(cv::Mat image, QRect rect);
 
 	private slots:
 		void onSetPaint();
 		void onSetMove();
+		void onSetROI();
 		void onLoadDirectory();
 		void setOpacity();
 		void setOpacityROI();
@@ -125,6 +129,7 @@ class View : public QFrame
 		QAction* action_copyNextImage;
 		QAction* action_copyPrevImage;
 		QAction* action_train_network;
+		QAction* action_useNetwork;
 
 
 	private:

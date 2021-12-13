@@ -20,15 +20,15 @@ int main(int argc, char* argv[])
 	QApplication app(argc, argv);
 
 	qRegisterMetaType<QString>("QString");
+	qRegisterMetaType<cv::Mat>("cv::Mat");
+	qRegisterMetaType<QRect>("QRect");
 	
-	//Logger->set_level(static_cast<spdlog::level::level_enum>(0));
 	Logger->set_pattern("[%Y-%m-%d] [%H:%M:%S.%e] [%t] [%^%l%$] %v");
 
 	QJsonObject config = readConfig(CONFIG);
 	QJsonObject postprocess = readConfig(POSTPROCESS);
 	
 	int messageLevel{ config[GENERAL].toObject()[LOG_LEVEL].toInt() };
-	//Logger->info("messageLevel:{}", messageLevel);
 	Logger->set_level(static_cast<spdlog::level::level_enum>(messageLevel));
 	intro(messageLevel);
 	
@@ -39,6 +39,7 @@ int main(int argc, char* argv[])
 
 void intro(int loglevel) {
 	Logger->info("\n\n\t \033[1;31mgt-annotate v3.5\033[0m \n"
+		"\t with dlib dnn \n"
 		"\t Author: Grzegorz Matczak \n"
 		"\t 10.12.2021 \n"
 		"\t log level:{}", loglevel);

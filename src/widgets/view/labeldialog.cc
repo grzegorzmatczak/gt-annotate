@@ -1,7 +1,9 @@
 #include "widgets/view/labeldialog.h"
 
 #include <QtWidgets>
+#include "includespdlog.h"
 
+#define DEBUG
 
 GeneralTab::GeneralTab(const QFileInfo &fileInfo, QWidget *parent)
 	: QWidget(parent)
@@ -25,6 +27,9 @@ QString GeneralTab::getLabelName()
 LabelDialog::LabelDialog(const QString &fileName, QWidget *parent)
 	: QDialog(parent)
 {
+	#ifdef DEBUG
+	Logger->debug("LabelDialog::LabelDialog()");
+	#endif
 	QFileInfo fileInfo(fileName);
 
 	tabWidget = new QTabWidget;
@@ -60,19 +65,26 @@ QString LabelDialog::getLabelName()
 
 void LabelDialog::accept()
 {
-	qDebug() << "accept";
+	#ifdef DEBUG
+	Logger->debug("LabelDialog::LabelDialog() accept");
+	#endif
 	QDialog::accept();
 }
 
 void LabelDialog::reject()
 {
-	qDebug() << "reject";
+	#ifdef DEBUG
+	Logger->debug("LabelDialog::LabelDialog() reject");
+	#endif
 	QDialog::reject();
 }
 
 SelectLabel::SelectLabel(const QFileInfo &fileInfo, QWidget *parent)
 	: QWidget(parent)
 {
+	#ifdef DEBUG
+	Logger->debug("SelectLabel::SelectLabel()");
+	#endif
 	QLabel *topLabel = new QLabel(tr("Open with:"));
 
 	applicationsListBox = new QListWidget;
@@ -102,17 +114,30 @@ SelectLabel::SelectLabel(const QFileInfo &fileInfo, QWidget *parent)
 
 QString SelectLabel::getSelected()
 {
+	#ifdef DEBUG
+	Logger->debug("SelectLabel::getSelected()");
+	#endif
 	QList<QListWidgetItem *> lista = applicationsListBox->selectedItems();
+	
+	#ifdef DEBUG
 	qDebug() << "lista.size():" << lista.size();
+	#endif
 	if (lista.size() == 1)
 	{
 		QListWidgetItem *temp = lista[0];
+		
+		#ifdef DEBUG
 		qDebug() << "QListWidgetItem* temp = lista[0]:" << temp;
 		qDebug() << "temp->text():" << temp->text();
+		Logger->debug("SelectLabel::getSelected() return temp->text()");
+		#endif
 		return temp->text();
 	}
 	else
 	{
+		#ifdef DEBUG
+		Logger->debug("SelectLabel::getSelected() return ");
+		#endif
 		return "";
 	}
 }

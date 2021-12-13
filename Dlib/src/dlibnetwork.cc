@@ -1,5 +1,6 @@
 #include "dlibnetwork.h"
 #include "dnn_instance.h"
+#include "scanfiles.h"
 
 #include <dlib/dnn.h>
 #include <dlib/data_io.h>
@@ -15,7 +16,7 @@
 #include <stdio.h>
 
 // THREADS: 1/4/8/16/32
-#define THREADS 4
+#define THREADS 8
 #define DEBUG
 //#define DEBUG_POSTPROCESSING
 
@@ -76,7 +77,6 @@ constexpr auto DIR_GT_TEST{ "DirectoryGtTest" };
 constexpr auto DIR_CLEAN_ROI{ "DirectoryCleanRoi" };
 constexpr auto DIR_GT_ROI{ "DirectoryGtRoi" };
 
-
 constexpr auto PATH_TO_DATASET{ "PathToDataset" };
 constexpr auto CONFIG_NAME{ "ConfigName" };
 constexpr auto DATASET_UNIX{ "DatasetLinux" };
@@ -131,7 +131,6 @@ void DlibNetwork::loadFromConfig(QJsonObject const& a_config)
 	m_learningRate = dlibConfig[LEARNING_RATE].toDouble();
 	m_synchName = dlibConfig[SYNCH_NAME].toString();
 	
-
 	#ifdef _WIN32
     QJsonObject configPaths = a_config[CONFIG_WIN].toObject();
     #endif // _WIN32
@@ -150,15 +149,76 @@ void DlibNetwork::loadFromConfig(QJsonObject const& a_config)
 	Logger->info("Dlib::configure() mini-batch size:{}", m_minBatchSize);
 	#endif
 
+	checkAndCreateFolder(m_dnnFolder);
+	checkAndCreateFolder(m_logsFolder);
+	checkAndCreateFolder(m_videoLogsFolder);
+
+	QString lastDnnFile = returnLastEditedDnn(m_dnnFolder);
+	#ifdef DEBUG
+	Logger->info("Dlib::configure() lastDnnFile:{}", (m_dnnFolder+lastDnnFile).toStdString());
+	#endif
+	try
+	{
+		dlib::deserialize((m_dnnFolder+lastDnnFile).toStdString().c_str()) >> segb;
+    }                                                            
+    catch (dlib::serialization_error& e)                            
+    {    
+		const char* err_msg = e.what();
+		qDebug() << "exception caught: " << err_msg;
+    }  
 }
 
 void DlibNetwork::loadDronConfigs(QJsonArray const& a_preprocess)
 {}
 
+void DlibNetwork::onUseNetwork(cv::Mat image, QRect rect)
+{
+	#ifdef DEBUG
+	Logger->debug("DlibNetwork::onUseNetwork()");
+	#endif
+	dlib::matrix<unsigned char> input_image;
+	dlib::cv_image<unsigned char> input_dlib_img(image);
+	dlib::assign_image(input_image, input_dlib_img);
+
+	const auto nr = input_image.nr();
+	const auto nc = input_image.nc();
+
+	#ifdef DEBUG
+	Logger->debug("DlibNetwork::onUseNetwork() instances nr:{} nc:{}", input_image.nr(), input_image.nc());
+	#endif
+	
+	dlib::matrix<float> instances = segb(input_image);
+	cv::Mat inputMat = dlib::toMat(input_image);
+
+	dlib::matrix<unsigned char> instancesChar(instances.nr(), instances.nc());
+
+	for (long r = 0; r < instances.nr(); ++r)
+	{
+		for (long c = 0; c < instances.nc(); ++c)
+		{
+			const auto& index = instances(r, c);
+			if (index <= 0)
+				instancesChar(r, c) = 0;
+			else
+			{
+				#ifdef DEBUG
+				Logger->debug("DlibNetwork::onUseNetwork() instancesChar(r, c) = 255");
+				#endif
+				instancesChar(r, c) = 255;
+			}
+				
+		}
+	}
+
+	cv::Mat outputMat = dlib::toMat(instancesChar);
+	emit(returnUsedNetwork(outputMat, rect));
+}
+
 void DlibNetwork::onLoadDirectory(QString folderName)
 {
 	Logger->debug("DlibNetwork::onLoadDirectory()");
 	QString pathConfig = folderName + "config.json";
+	m_configPath = folderName;
 	QJsonObject datasetConfig{};
 	std::shared_ptr<ConfigReader> cR = std::make_shared<ConfigReader>();
 	if (!cR->readConfig(pathConfig, datasetConfig))
@@ -220,9 +280,6 @@ void DlibNetwork::configure(QJsonObject const& a_config, QJsonArray const& a_pos
 	Logger->debug("Dlib::configure() file:{}", (m_fileName + ".txt").toStdString());
 	#endif
 	
-
-
-	
 	#ifdef DEBUG
 	Logger->debug("DlibNetwork::configure() done");
 	#endif
@@ -234,6 +291,11 @@ void DlibNetwork::onTrainNetwork()
 	Logger->debug("DlibNetwork::onTrainNetwork()");
 	#endif
 
+	if (!m_dataMemory->createPreTraining())
+	{
+		return;
+	}
+	
 	if (!m_dataMemory->loadNamesForPreTraining())
 	{
 		return;
@@ -284,7 +346,7 @@ void DlibNetwork::onTrainNetwork()
 	QString synch_nameNet = synch_name + "_" + QString::number(123) + ".dat";
 	bool useTwoCUDA = m_config[DLIB].toObject()["UseTwoCUDA"].toBool();
 
-	m_outputNetworkFileName = m_dnnFolderTestCase + m_dnnName + "_" + QString::number(m_dronNoise) + "_" + QString::number(m_dronContrast) + "_" + QString::number(m_nowTime) + ".dnn";
+	m_outputNetworkFileName = m_dnnFolderTestCase + m_dnnName + "_" + QString::number(m_nowTime) + ".dnn";
 
 	#ifdef DEBUG
 	Logger->debug("Dlib::configure() m_outputNetworkFileName:{}", m_outputNetworkFileName.toStdString());
@@ -293,15 +355,12 @@ void DlibNetwork::onTrainNetwork()
 	Logger->debug("Dlib::configure() m_outputNetworkFileName:{}", m_outputNetworkFileName.toStdString());
 	dlib::set_dnn_prefer_smallest_algorithms();
 
-	net_type segb;
-	//net_type2 segc;
 	m_epoch_counter = 0;
-	for(int i = 0 ; i < 2 ; i++)
+	for(int i = 0 ; i < 3 ; i++)
 	{
 		segb = this->train_segmentation_network(list);
 
 		dlib::serialize(m_outputNetworkFileName.toStdString().c_str()) << segb;
-		
 		//dlib::deserialize(m_outputNetworkFileName.toStdString().c_str()) >> segb;
 		if (m_currentLearningRate <= 0.0000001)
 		{
@@ -313,30 +372,23 @@ void DlibNetwork::onTrainNetwork()
 		}
 	}
 
-	DlibNetwork::testNetwork("test", segb,(m_configPath+m_cleanTestPath), (m_configPath+m_gtTestPath), m_fileLoggerTest);
+	DlibNetwork::testNetwork("test", segb, listing, m_fileLoggerTest);
 	#ifdef DEBUG
 	Logger->debug("DlibNetwork::onTrainNetwork() done");
 	#endif
 }
 
-void DlibNetwork::testNetwork(QString id, net_type segb, QString clean, QString gt, FileLogger* fileLogger)
+void DlibNetwork::testNetwork(QString id, net_type &segb, std::vector<image_info> &listing, FileLogger* fileLogger)
 {
+	#ifdef DEBUG
+	Logger->debug("DlibNetwork::testNetwork(id:{})", id.toStdString());
+	#endif
 	dlib::matrix<unsigned char> input_image;
 	dlib::matrix<unsigned char> label_image;
-
-	#ifdef DEBUG
-	Logger->debug("DlibNetwork::testNetwork() get_files_in_directory_tree()");
-	#endif
-
-	// Find supported image files.
-	const std::vector<dlib::file> files = dlib::get_files_in_directory_tree(clean.toStdString(), dlib::match_endings(".jpeg .jpg .png"));
-	const std::vector<dlib::file> files_label = dlib::get_files_in_directory_tree(gt.toStdString(), dlib::match_endings(".jpeg .jpg .png"));
-
 	dlib::rand rnd;
 
-	std::cout << "Found " << files.size() << " " << id.toStdString() << " images, processing..." << std::endl;
 	#ifdef DEBUG
-	Logger->debug("DlibNetwork::loadNetwork() for loop:");
+	std::cout << "Found " << listing.size() << " " << id.toStdString() << " images, processing..." << std::endl;
 	#endif
 	int num_right = 0;
 	int num_wrong = 0;
@@ -356,37 +408,18 @@ void DlibNetwork::testNetwork(QString id, net_type segb, QString clean, QString 
 			#ifdef DEBUG
 			qDebug() << "m_postprocess[i][CONFIG]:" << m_postprocess[i].toObject()[CONFIG];
 			#endif
-
-/*
-			QJsonObject obj = m_postprocess[i].toObject();
-			QJsonObject config = obj[CONFIG].toObject();
-			
-			// for video files:
-			m_fileName = m_videoLogsFolder + m_graphType + m_split + m_dronType + m_split + m_boundType + m_split +
-			id + "_" + QString::number(m_dronNoise) + "_" + QString::number(m_dronContrast) + "_" + QString::number(m_nowTime);
-			config["Path"] = m_fileName;
-			obj[CONFIG] = config;
-			m_postprocess[i] = obj;*/
 		}
 	}
 
 	m_graph_postprocessing.loadGraph(m_postprocess, m_blockPostprocess);
 
-	for(int i = 0 ; i < files.size() ; i++)
+	for(int i = 0 ; i < listing.size() ; i++)
 	{
-		#ifdef DEBUG
-		//Logger->debug("DlibNetwork::loadNetwork() Load the input image:");
-		#endif
-		load_image(input_image, files[i].full_name());
-		load_image(label_image, files_label[i].full_name());
+		load_image(input_image, listing[i].image_filename);
+		load_image(label_image, listing[i].gt_filename);
 		const auto nr = input_image.nr();
 		const auto nc = input_image.nc();
 
-		#ifdef DEBUG
-		//Logger->debug("DlibNetwork::loadNetwork() instances nr:{} nc:{}", input_image.nr(), input_image.nc());
-		//Logger->debug("DlibNetwork::loadNetwork() instances nr:{} nc:{}", label_image.nr(), label_image.nc());
-		#endif
-		
 		dlib::matrix<float> instances = segb(input_image);
 		cv::Mat labelMat = dlib::toMat(label_image);
 		cv::Mat inputMat = dlib::toMat(input_image);
@@ -406,12 +439,10 @@ void DlibNetwork::testNetwork(QString id, net_type segb, QString clean, QString 
 		}
 
 		cv::Mat outputMat = dlib::toMat(instancesChar);
-
 		m_outputData.clear();
 		m_outputData.push_back(outputMat.clone());
 		m_outputData.push_back(labelMat.clone());
 		m_outputData.push_back(inputMat.clone());
-
 		DlibNetwork::postprocessing();
 	}
 
@@ -842,8 +873,5 @@ net_type DlibNetwork::train_segmentation_network(const std::vector<truth_instanc
 	seg_net.clean();
 	m_timer.stop();
 
-	#ifdef DNN_1LAYERS_20CON_05DROPOUT
-		//dlib::layer<4>(seg_net).layer_details() = dlib::multiply_(0.5);
-	#endif
 	return seg_net;
 }

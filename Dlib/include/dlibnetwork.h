@@ -11,8 +11,6 @@
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 
-
-
 #include "includespdlog.h"
 #include "configreader.h"
 #include "filelogger.h"
@@ -28,7 +26,6 @@
 #include "dlib/opencv/cv_image.h"
 
 
-
 struct truth_instance
 {
     dlib::matrix<unsigned char> input_image;
@@ -42,7 +39,6 @@ class DlibNetwork : public QObject {
 		DlibNetwork(DataMemory* data, FileLogger *fileLoggerTrain, FileLogger *fileLoggerTest, FileLogger *fileLoggerJSON);
 		~DlibNetwork();
 		void process();
-
 		truth_instance load_truth_instances(const image_info& info);
 		net_type train_segmentation_network(const std::vector<truth_instance>& truth_images);
 
@@ -53,6 +49,7 @@ class DlibNetwork : public QObject {
 		void appendToFileLogger(QStringList list);
 		void configureLogger(QString name, bool additionalLogs);
 		void configureLoggerJSON(QString name, bool additionalLogs);
+		void returnUsedNetwork(cv::Mat image, QRect rect);
 
 	public slots:
 		void configure(QJsonObject const& a_config, QJsonArray const& a_postprocess);
@@ -60,15 +57,15 @@ class DlibNetwork : public QObject {
 		//void loadDatasetName(QJsonObject const& a_dataset);
 		void onLoadDirectory(QString folderName);
 		void onTrainNetwork();
+		void onUseNetwork(cv::Mat image, QRect rect);
 		
-
 	private:
 		void loadFromConfig(QJsonObject const& a_config);
 		void iteration();
 		void clearData();
 		void loadDronConfigs(QJsonArray const& a_preprocess);
 		void handleBestPopulation();
-		void testNetwork(QString id, net_type segb, QString clean, QString gt, FileLogger* fileLogger);
+		void testNetwork(QString id, net_type &segb, std::vector<image_info> &listing, FileLogger* fileLogger);
 		void postprocessing();
 		fitness finishPostProcessing();
 		void logPopulation(QString id, fitness fs, FileLogger * fileLogger);
@@ -89,7 +86,6 @@ class DlibNetwork : public QObject {
 		QJsonArray m_graph;
 		QJsonArray m_postprocess;
 		
-
 	private:
 		int m_maxNumEpochs{};
 		int m_minBatchSize{};
@@ -147,6 +143,7 @@ class DlibNetwork : public QObject {
 		QString m_infoName{};
 
 		qint64 m_nowTime;
+		net_type segb;
 };
 
 #endif // DLIB_NETWORK_H

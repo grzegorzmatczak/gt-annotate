@@ -31,9 +31,9 @@ Painter::Painter(QJsonObject const& config, GraphicsScene *graphicsScene, Graphi
 	m_roiType = 4;
 	m_paintType = 5;
 	m_imageType = 6;
+	m_dlibType = 10;
     m_painterSettings.configureColors(m_config);
 	m_graphicsView->setPainterSettings(&m_painterSettings);
-	m_tempVector = new ListVector<int>(20);
 }
 
 void Painter::onPaintOnBoard(qint32 x, qint32 y)
@@ -214,25 +214,26 @@ void Painter::onSaveRois()
 
 	QList<QGraphicsItem*> items = m_graphicsScene->items(Qt::DescendingOrder);
 	#ifdef DEBUG
-	spdlog::debug("View::onSaveRois() size:{}", items.size());
+	Logger->debug("View::onSaveRois() size:{}", items.size());
 	#endif
 	for (int i = 0; i < items.size(); i++)
 	{
-		QRectF rect = items[i]->boundingRect();
-		QPointF pos = items[i]->pos();
-
-		int x = rect.x() + 1;
-		int y = rect.y() + 1;
-		int width = rect.width() - 1;
-		int height = rect.height() - 1;
-		int sizeRoi = qAbs(width / 2) * qAbs(height / 2);
-
-		QSize size = QSize(width, height);
-		#ifdef DEBUG
-		spdlog::debug("items size:{}x{}x{}x{}", x, y, size.width(), size.height());
-		#endif
 		if (items[i]->type() == m_roiType)
 		{
+			QRectF rect = items[i]->boundingRect();
+			QPointF pos = items[i]->pos();
+
+			int x = rect.x() + 1;
+			int y = rect.y() + 1;
+			int width = rect.width() - 1;
+			int height = rect.height() - 1;
+			int sizeRoi = qAbs(width / 2) * qAbs(height / 2);
+
+			QSize size = QSize(width, height);
+			#ifdef DEBUG
+			Logger->debug("items size:{}x{}x{}x{}", x, y, size.width(), size.height());
+			#endif
+		
 			GraphicsRectItem* cast = dynamic_cast<GraphicsRectItem*>(items[i]);
 			bool b_saveFlag = true;
 			if(!cast->isEnabled())
@@ -271,6 +272,161 @@ void Painter::onSaveRois()
 	#ifdef DEBUG
 	qDebug() << "jROI:" << jROI;
 	Logger->debug("View::onSaveRois() done");
+	#endif
+}
+
+QImage Painter::cvMatToQImage(const cv::Mat &input)
+{
+	#ifdef DEBUG
+	Logger->debug("View::cvMatToQImage()");
+	#endif
+	switch ( input.type() )
+	{
+		case CV_8UC1:
+		{
+			QImage image( input.data,
+			input.cols, input.rows,
+			static_cast<int>(input.step),
+			QImage::Format_Grayscale8 );
+			return image;
+		}
+	}
+}
+
+cv::Mat Painter::QImageToCvMat( const QImage &inImage, bool inCloneImageData = true )
+{
+	#ifdef DEBUG
+	Logger->debug("View::QImageToCvMat()");
+	#endif
+	switch ( inImage.format() )
+	{
+		// 8-bit, 1 channel
+		case QImage::Format_Indexed8:
+		{
+			#ifdef DEBUG
+			Logger->debug("View::QImageToCvMat() case QImage::Format_Indexed8:");
+			#endif
+			cv::Mat  mat( inImage.height(), inImage.width(),
+			CV_8UC1,
+			const_cast<uchar*>(inImage.bits()),
+			static_cast<size_t>(inImage.bytesPerLine())
+			);
+
+			return (inCloneImageData ? mat.clone() : mat);
+		}
+		case QImage::Format_Grayscale8:
+		{
+			return cv::Mat(inImage.height(), inImage.width(), CV_8UC1, 
+                   const_cast<uchar*>(inImage.bits()), 
+                   inImage.bytesPerLine()).clone();
+		}
+
+	}
+}
+
+void Painter::onUseNetwork()
+{
+	//TODO 
+	// find selected roi
+	// crop it from image
+	// emit it via signal to dlibNetwork
+	//emit(useNetwork());
+	QList<QGraphicsItem*> items = m_graphicsScene->items(Qt::DescendingOrder);
+	#ifdef DEBUG
+	Logger->debug("View::onSaveRois() size:{}", items.size());
+	#endif
+
+	std::vector<cv::Mat> imageToNetwork;
+
+	for (auto& item : items)
+	{
+		if (item->type() == m_dlibType)
+		{
+			QRectF rect = item->boundingRect();
+			QPointF pos = item->pos();
+
+			int x = rect.x() + 1;
+			int y = rect.y() + 1;
+			int width = rect.width() - 1;
+			int height = rect.height() - 1;
+			int sizeRoi = qAbs(width / 2) * qAbs(height / 2);
+			QRect simpleRect{x,y,width,height};
+
+			QSize size = QSize(width, height);
+			#ifdef DEBUG
+
+			QImage grayscaleImage = m_image.convertToFormat(QImage::Format_Grayscale8);
+			QImage::Format format = grayscaleImage.format();
+			qDebug() << "grayscaleImage format:" << format;
+			Logger->debug("items size:{}x{}x{}x{}", x, y, size.width(), size.height());
+			#endif
+			//TODO m_image jest kolorowe:!
+			QImage roiImage = grayscaleImage.copy(x,y,width,height);
+
+			#ifdef DEBUG
+			QImage::Format format2 = roiImage.format();
+			qDebug() << "roiImage format:" << format2;
+			#endif
+
+			cv::Mat roiCvMat = QImageToCvMat(roiImage);
+
+			#ifdef DEBUG
+			qDebug() << "roiCvMat channels:" << roiCvMat.channels();
+			qDebug() << "roiCvMat cols:" << roiCvMat.cols;
+			qDebug() << "roiCvMat rows:" << roiCvMat.rows;
+			#endif
+
+			//cv::imshow("roiCvMat",roiCvMat);
+			//cv::waitKey(0);
+			emit(useNetwork(roiCvMat, simpleRect));
+			//GraphicsRectItem* cast = dynamic_cast<GraphicsRectItem*>(item);
+		}
+	}
+}
+
+void Painter::onReturnUsedNetwork(cv::Mat image, QRect rect)
+{
+	#ifdef DEBUG
+	Logger->debug("Painter::onReturnUsedNetwork()");
+	#endif
+	//cv::Mat& image = m_dataMemory->gt(id);
+	
+	#ifdef DEBUG
+	Logger->debug("Painter::onReturnUsedNetwork() image ({}x{}x{})", image.cols, image.rows, image.channels());
+	#endif
+	if(image.empty())
+	{
+		Logger->error("Painter::onReturnUsedNetwork() image cant be loaded");
+		return;
+	}
+	else
+	{
+		if(image.channels() > 1)
+		{
+			cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
+		}
+		
+		for (qint32 color = 0; color < m_painterSettings.m_colors.size(); color++)
+		{
+			int ii = 0;
+			for (int i = rect.x(); i < (rect.x()+rect.width()); i++, ii++)
+			{
+				//if(i>rect.x() && i<(rect.x()+rect.width()))
+					int jj = 0;
+					for (int j = rect.y(); j < (rect.y()+rect.height()); j++, jj++)
+					{
+						//if(i>rect.y() && i<(rect.y()+rect.height()))
+							if ( m_painterSettings.m_colorIntHash[m_painterSettings.m_colors[color]] == image.at<unsigned char>(jj, ii))
+							{
+								onPaintColors(i, j, m_painterSettings.m_colorHash[m_painterSettings.m_colors[color]]);
+							}
+					}
+			}
+		}
+	}
+	Painter::onPaintColorsFinish();
+	#ifdef DEBUG
+	Logger->debug("Painter::onReturnUsedNetwork() done");
 	#endif
 }
 
@@ -445,7 +601,9 @@ void Painter::onAddRectToScene(QPointF startPoint, QPointF stopPoint, bool dialo
 		width = qAbs(x - stopPoint.x());
 		y = startPoint.y();
 		heigt = qAbs(y - stopPoint.y());
-		spdlog::trace("View::onAddRectToScene() Bottom Right");
+		#ifdef DEBUG
+		Logger->debug("View::onAddRectToScene() Bottom Right");
+		#endif
 	}
 	else if (startPoint.x() < stopPoint.x() && startPoint.y() > stopPoint.y())
 	{
@@ -453,7 +611,9 @@ void Painter::onAddRectToScene(QPointF startPoint, QPointF stopPoint, bool dialo
 		width = qAbs(x - stopPoint.x());
 		y = stopPoint.y();
 		heigt = qAbs(y - startPoint.y());
-		spdlog::trace("View::onAddRectToScene() Up Right");
+		#ifdef DEBUG
+		Logger->debug("View::onAddRectToScene() Up Right");
+		#endif
 	}
 	else if (startPoint.x() > stopPoint.x() && startPoint.y() < stopPoint.y())
 	{
@@ -461,7 +621,9 @@ void Painter::onAddRectToScene(QPointF startPoint, QPointF stopPoint, bool dialo
 		width = qAbs(x - startPoint.x());
 		y = startPoint.y();
 		heigt = qAbs(y - stopPoint.y());
-		spdlog::trace("View::onAddRectToScene() Bottom Left");
+		#ifdef DEBUG
+		Logger->debug("View::onAddRectToScene() Bottom Left");
+		#endif
 	}
 	else if (startPoint.x() > stopPoint.x() && startPoint.y() > stopPoint.y())
 	{
@@ -469,7 +631,9 @@ void Painter::onAddRectToScene(QPointF startPoint, QPointF stopPoint, bool dialo
 		width = qAbs(x - startPoint.x());
 		y = stopPoint.y();
 		heigt = qAbs(y - startPoint.y());
-		spdlog::trace("View::onAddRectToScene() Up Left");
+		#ifdef DEBUG
+		Logger->debug("View::onAddRectToScene() Up Left");
+		#endif
 	}
 
 	if (dialog)
@@ -479,36 +643,25 @@ void Painter::onAddRectToScene(QPointF startPoint, QPointF stopPoint, bool dialo
 
 		if (dialogCode == QDialog::Accepted)
 		{
-			int ret = 1;
-			ret = m_tempVector->leaseItem();
-			if (ret >= 0)
-			{
 				QString tempStr = dialog->getLabelName();
 				QRectF tempRectToText = QRectF(x, y, width, heigt);
 				QColor color = QColor::fromRgb(0, 0, 0, 0);
-				GraphicsRectItem* rectItem = new GraphicsRectItem(color, tempStr, tempRectToText,m_roiType, 0);
+				GraphicsRectItem* rectItem = new GraphicsRectItem(color, tempStr, tempRectToText, m_dlibType, 0);
 				m_graphicsScene->addItem(rectItem);
-			}
+			
 		}
 		if (dialogCode == QDialog::Rejected)
 		{
-			spdlog::trace("View::onAddRectToScene() QDialog::Rejected");
+			#ifdef DEBUG
+			Logger->debug("View::onAddRectToScene() QDialog::Rejected");
+			#endif
 		}
 	}
 	else
-	{
-		QRectF tempRectToText = QRectF(x, y, width, heigt);
-		QColor color = QColor::fromRgb(0, 0, 0, 0);
-		qint32 ret = m_tempVector->leaseItem();
-		if (ret >= 0)
-		{
-			SelectText* selectText = new SelectText(color, name, tempRectToText, m_graphicsScene, ret);
-			selectText->setEnabled(true);
-			selectText->setRect(tempRectToText);
-			selectText->setVisible(true);
-			m_graphicsScene->addItem(selectText);
-		}
-	}
+	{}
+	#ifdef DEBUG
+	Logger->debug("Painter::onAddRectToScene() done");
+	#endif
 }
 
 void Painter::addImageToScene(QPixmap image)

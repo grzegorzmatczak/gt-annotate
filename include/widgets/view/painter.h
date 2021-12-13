@@ -6,7 +6,6 @@
 #include <QObject>
 #include "includespdlog.h"
 #include "configreader.h"
-#include "listvector.h"
 #include "data.h"
 
 #include "widgets/view/graphicsscene.h"
@@ -43,6 +42,7 @@ class Painter : public QObject
 		void updatStatus(int id, QString status);
 		void addRoi(int id, QString label, int size, bool enable);
 		void clearRoiWidget();
+		void useNetwork(cv::Mat image, QRect rect);
 
 	private:
 		GraphicsView *m_graphicsView;
@@ -64,6 +64,8 @@ class Painter : public QObject
 		void onAddRectToScene(QPointF startPoint, QPointF stopPoint, bool dialog, QString name);
 		void onRoiItemChanged(QTreeWidgetItem *item, int column);
 		void onRoiItemSelectionChanged();
+		void onUseNetwork();
+		void onReturnUsedNetwork(cv::Mat image, QRect rect);
 
 	private:
 		void addImageToScene(QPixmap image);
@@ -74,6 +76,8 @@ class Painter : public QObject
 		void onPaintOnBoardInColor(qint32 x, qint32 y, QColor color);
 		void addRoisToScene(QJsonArray contoursArray);
 		void addToRoiWidget(QJsonArray array);
+		QImage cvMatToQImage(const cv::Mat &input);
+		cv::Mat QImageToCvMat( const QImage &inImage, bool inCloneImageData);
 
 	private:
 		QImage m_paintImage;
@@ -83,7 +87,6 @@ class Painter : public QObject
 		GraphicsPixmapItem *m_pixmap;
 		GraphicsPixmapItem *m_gridPixmap;
 		DataMemory* m_dataMemory;
-		ListVector<int>* m_tempVector;
 
 	private:
 		Contour m_contour;	
@@ -92,12 +95,11 @@ class Painter : public QObject
 		int m_roiType;
 		int m_paintType;
 		int m_imageType;
+		int m_dlibType;
 		int m_id;
 
 	public:
 		PainterSettings m_painterSettings;
-		//ListVector<listInfo> m_listVector;
-
 	private:
 		QString m_currentDirectory;
 		QString m_currentPaintDirectory;

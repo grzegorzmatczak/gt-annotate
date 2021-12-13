@@ -19,13 +19,14 @@
 	},
 	"Dlib":
 	{
-		"MinibatchSize": 100,
-		"ImageSize": 50,
+		"MinibatchSize": 200,
+		"ImageSize": 100,
 		"Queqe": 200,
 		"DnnName" : "dnn",
 		"SynchName": "temp",
 		"UseTwoCUDA" :  false,
 		"LearningRate" : 0.1,
+		"TargetLearningRate": 0.0001,
 		"DronType" : "",
 		"GraphType":"",
 		"BoundsType" : "",

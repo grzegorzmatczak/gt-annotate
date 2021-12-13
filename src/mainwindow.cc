@@ -36,7 +36,6 @@ void MainWindow::configure(QJsonObject const a_config, QJsonObject const a_postp
 	createMenus();
 	setupView(a_config);
 	setupLayout();
-	
 
 	m_fileLoggerTrainThread = new QThread();
 	m_fileLoggerTrain = new FileLogger() ;
@@ -68,7 +67,8 @@ void MainWindow::configure(QJsonObject const a_config, QJsonObject const a_postp
 	m_view->configure();
 
 	connect(m_view, &View::trainNetwork, m_dlib, &DlibNetwork::onTrainNetwork);
-
+	connect(m_view, &View::useNetwork, m_dlib, &DlibNetwork::onUseNetwork);
+	connect(m_dlib, &DlibNetwork::returnUsedNetwork, m_view, &View::onReturnUsedNetwork);
 	setupMainWidget();
 }
 

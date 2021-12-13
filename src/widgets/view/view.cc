@@ -172,6 +172,7 @@ void View::creteAction()
 
 	connect(action_paint, &QAction::triggered, this, &View::onSetPaint);
 	connect(action_move, &QAction::triggered, this, &View::onSetMove);
+	connect(action_ROI, &QAction::triggered, this, &View::onSetROI);
 
 	action_loadDirectory = new QAction(tr("&Load Directory"), this);
 	action_loadDirectory->setStatusTip(tr("Load Directory"));
@@ -194,13 +195,18 @@ void View::creteAction()
 	connect(m_painter, &Painter::clearRoiWidget, m_dataWidget, &DataWidget::clearRoiWidget );
 
 	connect(m_dataWidget->roiWidget, &RoiWidget::itemChanged, m_painter, &Painter::onRoiItemChanged);
-	//connect(m_dataWidget->roiWidget, &RoiWidget::currentItemChanged, m_painter, &Painter::onRoiItemChanged);
 	connect(m_dataWidget->roiWidget, &RoiWidget::itemSelectionChanged, m_painter, &Painter::onRoiItemSelectionChanged);
 	
 
 	action_train_network = new QAction(tr("&Train Network"), this);
 	action_train_network->setToolTip("Train Network");
 	connect(action_train_network, &QAction::triggered, this, &View::onTrainNetwork);
+
+	action_useNetwork = new QAction(tr("&Use Network"), this);
+	action_useNetwork->setToolTip("Use Network");
+	connect(action_useNetwork, &QAction::triggered, m_painter, &Painter::onUseNetwork);
+	connect(m_painter, &Painter::useNetwork, this, &View::onUseNetwork);
+	
 	
 	View::onSetPaint();
 }
@@ -209,6 +215,21 @@ void View::onTrainNetwork()
 {
 	emit(trainNetwork());
 }
+
+void View::onUseNetwork(cv::Mat image, QRect rect)
+{
+	//void useNetwork(cv::Mat image);
+	//m_painter->onUseNetwork();
+	emit(useNetwork(image, rect));
+	
+}
+
+void View::onReturnUsedNetwork(cv::Mat image, QRect rect)
+{
+	//emit(returnUsedNetwork(image, rect));
+	m_painter->onReturnUsedNetwork(image, rect);
+}
+
 
 void View::setupBottomToolBar() 
 {
@@ -275,12 +296,14 @@ void View::setupLeftToolBar()
 	
 	m_leftToolBar->addAction(action_paint);
 	m_leftToolBar->addAction(action_move);
+	m_leftToolBar->addAction(action_ROI);
 	m_leftToolBar->addSeparator();
 	m_leftToolBar->addAction(action_create_roi);
 	m_leftToolBar->addAction(action_saveWhitePixmap);
 
 	m_leftToolBar->addSeparator();
 	m_leftToolBar->addAction(action_train_network);
+	m_leftToolBar->addAction(action_useNetwork);
 	
 }
 
@@ -453,6 +476,7 @@ void View::onSetPaint()
 	#endif
 	action_paint->setChecked(true);
 	action_move->setChecked(false);
+	action_ROI->setChecked(false);
 	m_graphicsView->setDragMode(QGraphicsView::NoDrag);
 	m_graphicsScene->setMode(uiMode::Paint);
 }
@@ -464,6 +488,17 @@ void View::onSetMove()
 	#endif
 	action_paint->setChecked(false);
 	action_move->setChecked(true);
+	action_ROI->setChecked(false);
 	m_graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
 	m_graphicsScene->setMode(uiMode::MoveSelect);
+}
+
+void View::onSetROI()
+{
+	Logger->trace("View::setROI()");
+	action_move->setChecked(false);
+	action_paint->setChecked(false);
+	action_ROI->setChecked(true);
+	m_graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
+	m_graphicsScene->setMode(uiMode::SelectROI);
 }
