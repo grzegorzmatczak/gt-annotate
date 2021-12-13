@@ -8,8 +8,8 @@
 
 ![alt text](https://github.com/SanczoPL/gt-annotate/blob/main/doc/gt-annotate_v3.5/1.png)
 
-- Select ROI and save it to json file
-
+- Select object 
+- 
 ![alt text](https://github.com/SanczoPL/gt-annotate/blob/main/doc/gt-annotate_v3.5/2.png)
 
 - Manually select ground truth pixel and save it to json file
